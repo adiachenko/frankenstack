@@ -1,3 +1,4 @@
+# check=skip=SecretsUsedInArgOrEnv
 FROM dunglas/frankenphp:1.11.1-php8.4.17-trixie
 
 # Node.js version build args (update these for new LTS releases)
@@ -14,6 +15,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base \
     git \
+    openssh-client \
     sqlite3 \
     vim-tiny \
     && rm -rf /var/lib/apt/lists/* \
@@ -147,7 +149,10 @@ ENV NODE_VERSION=24 \
     PHP_XDEBUG_MODE=off \
     PHP_XDEBUG_CLIENT_HOST=host.docker.internal \
     PHP_XDEBUG_CLIENT_PORT=9003 \
-    PHP_XDEBUG_START_WITH_REQUEST=trigger
+    PHP_XDEBUG_START_WITH_REQUEST=trigger \
+    SSH_KNOWN_HOSTS="github.com,gitlab.com,bitbucket.org" \
+    # Default socket path for SSH agent (used when loading keys from secrets)
+    SSH_AUTH_SOCK="/tmp/ssh-agent.sock"
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["--config", "/etc/frankenphp/Caddyfile"]

@@ -39,6 +39,80 @@ process_templates() {
     done
 }
 
+# Configure SSH for private Composer packages
+setup_ssh() {
+    local ssh_dir="/root/.ssh"
+
+    # Skip if no SSH configuration present
+    if [ -z "${SSH_AUTH_SOCK:-}" ] && [ ! -f "/run/secrets/ssh_key" ]; then
+        return 0
+    fi
+
+    mkdir -p "$ssh_dir"
+    chmod 700 "$ssh_dir"
+    setup_ssh_known_hosts "$ssh_dir"
+
+    # Use agent forwarding if available, otherwise load from secret
+    if [ -n "${SSH_AUTH_SOCK:-}" ] && [ -S "${SSH_AUTH_SOCK}" ] && ssh-add -l >/dev/null 2>&1; then
+        echo "SSH: Using forwarded agent ($(ssh-add -l 2>/dev/null | wc -l | xargs) keys)"
+    elif [ -f "/run/secrets/ssh_key" ]; then
+        setup_ssh_from_secret
+    fi
+}
+
+# Configure SSH known_hosts
+setup_ssh_known_hosts() {
+    local ssh_dir="$1"
+    local known_hosts="$ssh_dir/known_hosts"
+
+    # Prefer mounted known_hosts (more secure than TOFU)
+    if [ -f "/run/secrets/ssh_known_hosts" ]; then
+        cp /run/secrets/ssh_known_hosts "$known_hosts"
+        chmod 644 "$known_hosts"
+        echo "SSH: Using mounted known_hosts"
+        return 0
+    fi
+
+    # Fallback: ssh-keyscan for common hosts
+    if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
+        local IFS=','
+        for host in $SSH_KNOWN_HOSTS; do
+            host=$(echo "$host" | xargs)
+            [ -n "$host" ] && ssh-keyscan -H "$host" >> "$known_hosts" 2>/dev/null
+        done
+        chmod 644 "$known_hosts"
+        echo "SSH: known_hosts configured via ssh-keyscan"
+    fi
+}
+
+# Load SSH key from Docker secret
+setup_ssh_from_secret() {
+    # Start ssh-agent with fixed socket path
+    local socket_path="/tmp/ssh-agent.sock"
+    rm -f "$socket_path"
+    ssh-agent -a "$socket_path" >/dev/null
+    export SSH_AUTH_SOCK="$socket_path"
+
+    # Get passphrase from environment variable (if set)
+    local passphrase="${SSH_KEY_PASSPHRASE:-}"
+
+    # Load key with passphrase via SSH_ASKPASS
+    if [ -n "$passphrase" ]; then
+        local askpass="/tmp/ssh_askpass_$$"
+        printf '#!/bin/sh\necho "%s"\n' "$passphrase" > "$askpass"
+        chmod 700 "$askpass"
+
+        SSH_ASKPASS="$askpass" SSH_ASKPASS_REQUIRE=force \
+            ssh-add /run/secrets/ssh_key </dev/null 2>/dev/null
+
+        rm -f "$askpass"
+    else
+        ssh-add /run/secrets/ssh_key 2>/dev/null
+    fi
+
+    echo "SSH: Agent started with $(ssh-add -l 2>/dev/null | wc -l | xargs) key(s)"
+}
+
 # Configure worker mode if enabled
 setup_worker_mode() {
     [ "$FRANKENPHP_MODE" = "worker" ] || return 0
@@ -78,6 +152,7 @@ main() {
     setup_node_version
     setup_timeouts
     process_templates
+    setup_ssh
     setup_worker_mode
 
     # If a command is passed and it's not a frankenphp flag, run it directly
