@@ -1,6 +1,5 @@
 # Agents
-/.claude
-/.gemini
-/.cursor
+/.claude/plans/
+/.claude/settings.local.json
 AGENTS.local.md
 CLAUDE.local.md
