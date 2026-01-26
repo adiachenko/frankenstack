@@ -43,7 +43,7 @@ apply_mode_defaults() {
     local mode="${FRANKENPHP_MODE:-classic}"
 
     if [ -z "${PHP_XDEBUG_START_WITH_REQUEST:-}" ]; then
-        if [ "$effective_mode" = "worker" ]; then
+        if [ "$mode" = "worker" ]; then
             export PHP_XDEBUG_START_WITH_REQUEST="trigger"
         else
             export PHP_XDEBUG_START_WITH_REQUEST="yes"
@@ -51,13 +51,68 @@ apply_mode_defaults() {
     fi
 
     if [ -z "${PHP_XDEBUG_START_UPON_ERROR:-}" ]; then
-        if [ "$effective_mode" = "worker" ]; then
+        if [ "$mode" = "worker" ]; then
             export PHP_XDEBUG_START_UPON_ERROR="default"
         else
             export PHP_XDEBUG_START_UPON_ERROR="yes"
         fi
     fi
 
+}
+
+# Apply PHP_ENV-aware defaults without clobbering explicit overrides
+apply_php_env_defaults() {
+    local env="${PHP_ENV:-production}"
+
+    case "$env" in
+        production|development) ;;
+        *)
+            echo "WARNING: Unknown PHP_ENV '$env'. Falling back to production."
+            env="production"
+            ;;
+    esac
+
+    export PHP_ENV="$env"
+
+    if [ -z "${PHP_DISPLAY_ERRORS:-}" ]; then
+        if [ "$env" = "development" ]; then
+            export PHP_DISPLAY_ERRORS="On"
+        else
+            export PHP_DISPLAY_ERRORS="Off"
+        fi
+    fi
+
+    if [ -z "${PHP_DISPLAY_STARTUP_ERRORS:-}" ]; then
+        if [ "$env" = "development" ]; then
+            export PHP_DISPLAY_STARTUP_ERRORS="On"
+        else
+            export PHP_DISPLAY_STARTUP_ERRORS="Off"
+        fi
+    fi
+
+    if [ -z "${PHP_ERROR_REPORTING:-}" ]; then
+        if [ "$env" = "development" ]; then
+            export PHP_ERROR_REPORTING="E_ALL"
+        else
+            export PHP_ERROR_REPORTING="E_ALL & ~E_DEPRECATED"
+        fi
+    fi
+
+    if [ -z "${PHP_XDEBUG_MODE:-}" ]; then
+        if [ "$env" = "development" ]; then
+            export PHP_XDEBUG_MODE="debug,develop"
+        else
+            export PHP_XDEBUG_MODE="off"
+        fi
+    fi
+
+    if [ -z "${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-}" ]; then
+        if [ "$env" = "development" ]; then
+            export PHP_OPCACHE_VALIDATE_TIMESTAMPS="1"
+        else
+            export PHP_OPCACHE_VALIDATE_TIMESTAMPS="0"
+        fi
+    fi
 }
 
 # Process PHP configuration templates
@@ -181,6 +236,7 @@ main() {
     setup_node_version
     setup_timeouts
     resolve_effective_mode
+    apply_php_env_defaults
     apply_mode_defaults
     process_templates
     setup_ssh
