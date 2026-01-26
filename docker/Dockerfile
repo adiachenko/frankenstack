@@ -150,6 +150,7 @@ ENV NODE_VERSION=24 \
     PHP_XDEBUG_CLIENT_HOST=host.docker.internal \
     PHP_XDEBUG_CLIENT_PORT=9003 \
     PHP_XDEBUG_START_WITH_REQUEST=trigger \
+    COMPOSER_MEMORY_LIMIT=-1 \
     SSH_KNOWN_HOSTS="github.com,gitlab.com,bitbucket.org" \
     # Default socket path for SSH agent (used when loading keys from secrets)
     SSH_AUTH_SOCK="/tmp/ssh-agent.sock"
