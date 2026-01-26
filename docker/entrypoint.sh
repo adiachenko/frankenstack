@@ -26,6 +26,40 @@ setup_timeouts() {
     export CADDY_WRITE_TIMEOUT="$((REQUEST_TIMEOUT + 10))s"
 }
 
+# Resolve the effective mode (worker requires a valid worker script)
+resolve_effective_mode() {
+    local mode="${FRANKENPHP_MODE:-classic}"
+
+    if [ "$mode" = "worker" ] && [ ! -f "$FRANKENPHP_WORKER" ]; then
+        echo "WARNING: Worker mode requested but $FRANKENPHP_WORKER not found. Running in classic mode."
+        mode="classic"
+    fi
+
+    export FRANKENPHP_MODE="$mode"
+}
+
+# Apply mode-aware defaults without clobbering explicit overrides
+apply_mode_defaults() {
+    local mode="${FRANKENPHP_MODE:-classic}"
+
+    if [ -z "${PHP_XDEBUG_START_WITH_REQUEST:-}" ]; then
+        if [ "$effective_mode" = "worker" ]; then
+            export PHP_XDEBUG_START_WITH_REQUEST="trigger"
+        else
+            export PHP_XDEBUG_START_WITH_REQUEST="yes"
+        fi
+    fi
+
+    if [ -z "${PHP_XDEBUG_START_UPON_ERROR:-}" ]; then
+        if [ "$effective_mode" = "worker" ]; then
+            export PHP_XDEBUG_START_UPON_ERROR="default"
+        else
+            export PHP_XDEBUG_START_UPON_ERROR="yes"
+        fi
+    fi
+
+}
+
 # Process PHP configuration templates
 process_templates() {
     local conf_dir="$PHP_INI_DIR/conf.d"
@@ -115,14 +149,9 @@ setup_ssh_from_secret() {
 
 # Configure worker mode if enabled
 setup_worker_mode() {
-    [ "$FRANKENPHP_MODE" = "worker" ] || return 0
+    [ "${FRANKENPHP_MODE:-classic}" = "worker" ] || return 0
 
-    local worker_script="/app/public/frankenphp-worker.php"
-    if [ ! -f "$worker_script" ]; then
-        echo "WARNING: Worker mode requested but $worker_script not found. Running in classic mode."
-        return 0
-    fi
-
+    local worker_filename="${FRANKENPHP_WORKER##*/}"
     local watch_config=""
     if [ -n "$FRANKENPHP_WORKER_WATCH" ]; then
         local IFS=','
@@ -131,26 +160,28 @@ setup_worker_mode() {
             pattern=$(echo "$pattern" | xargs)
             [ -n "$pattern" ] && watch_config="${watch_config}watch \"$pattern\"
         "
-        done
-        echo "FrankenPHP file watching enabled: $FRANKENPHP_WORKER_WATCH"
+    done
+    echo "FrankenPHP file watching enabled: $FRANKENPHP_WORKER_WATCH"
     fi
 
     export FRANKENPHP_WORKER_CONFIG="worker {
-        file \"$worker_script\"
+        file \"$FRANKENPHP_WORKER\"
         $watch_config
     }"
 
-    export PHP_SERVER_CONFIG="index frankenphp-worker.php
-        try_files {path} frankenphp-worker.php
+    export PHP_SERVER_CONFIG="index $worker_filename
+        try_files {path} $worker_filename
         resolve_root_symlink"
 
-    echo "FrankenPHP worker mode enabled with: $worker_script"
+    echo "FrankenPHP worker mode enabled with: $FRANKENPHP_WORKER"
 }
 
 # Main entrypoint logic
 main() {
     setup_node_version
     setup_timeouts
+    resolve_effective_mode
+    apply_mode_defaults
     process_templates
     setup_ssh
     setup_worker_mode

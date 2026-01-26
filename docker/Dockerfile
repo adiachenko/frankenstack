@@ -132,6 +132,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # Set default environment variables
 ENV NODE_VERSION=24 \
     FRANKENPHP_MODE=classic \
+    FRANKENPHP_WORKER=/app/public/frankenphp-worker.php \
     FRANKENPHP_WORKER_WATCH="" \
     REQUEST_TIMEOUT=60 \
     SERVER_NAME=:80 \
@@ -149,7 +150,6 @@ ENV NODE_VERSION=24 \
     PHP_XDEBUG_MODE=off \
     PHP_XDEBUG_CLIENT_HOST=host.docker.internal \
     PHP_XDEBUG_CLIENT_PORT=9003 \
-    PHP_XDEBUG_START_WITH_REQUEST=trigger \
     COMPOSER_MEMORY_LIMIT=-1 \
     SSH_KNOWN_HOSTS="github.com,gitlab.com,bitbucket.org" \
     # Default socket path for SSH agent (used when loading keys from secrets)
