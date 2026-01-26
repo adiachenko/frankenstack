@@ -1,6 +1,6 @@
 # Frankenstack
 
-A FrankenPHP-based Docker image that supports both **classic PHP** and **Laravel Octane**, comes with batteries included, and lets you tweak PHP settings via environment variables.
+**Laravel**‑focused FrankenPHP Docker image for classic PHP or Octane, batteries included, configurable via env vars.
 
 ## Included Tools
 
