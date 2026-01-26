@@ -52,14 +52,11 @@ services:
     environment:
       - PHP_ENV: development
       - FRANKENPHP_MODE: worker
-      - FRANKENPHP_WORKER_WATCH: "/opt/project/**/*.php,/opt/project/.env*"
     ports:
       - 8000:80
     volumes:
       - ./:/opt/project
 ```
-
-If `FRANKENPHP_WORKER_WATCH` is set, workers automatically restart when matching files change. Useful for development to avoid having to restart workers manually; leave empty in production to avoid overhead.
 
 ## Classic vs Worker Mode
 
@@ -81,13 +78,12 @@ In worker mode, FrankenPHP keeps PHP workers alive between requests, eliminating
 
 ### Application Settings
 
-| Variable                  | Default                                     |
-| ------------------------- | ------------------------------------------- |
-| `FRANKENPHP_MODE`         | `classic` (also supports `worker`)          |
-| `FRANKENPHP_WORKER`       | `/opt/project/public/frankenphp-worker.php` |
-| `FRANKENPHP_WORKER_WATCH` |                                             |
-| `REQUEST_TIMEOUT`         | `60` (seconds)                              |
-| `NODE_VERSION`            | `24` (also supports `22`)                   |
+| Variable            | Default                                     |
+| ------------------- | ------------------------------------------- |
+| `FRANKENPHP_MODE`   | `classic` (also supports `worker`)          |
+| `FRANKENPHP_WORKER` | `/opt/project/public/frankenphp-worker.php` |
+| `REQUEST_TIMEOUT`   | `60` (seconds)                              |
+| `NODE_VERSION`      | `24` (also supports `22`)                   |
 
 The `REQUEST_TIMEOUT` variable controls multiple timeouts:
 
@@ -107,15 +103,16 @@ The buffer ensures Caddy doesn't kill connections before PHP can return error re
 
 When set, `PHP_ENV` applies these defaults (unless explicitly overridden):
 
-| Environment Defaults (`PHP_ENV`)  | `production`            | `development`   |
-| --------------------------------- | ----------------------- | --------------- |
-| `PHP_DISPLAY_ERRORS`              | `Off`                   | `On`            |
-| `PHP_DISPLAY_STARTUP_ERRORS`      | `Off`                   | `On`            |
-| `PHP_ERROR_REPORTING`             | `E_ALL & ~E_DEPRECATED` | `E_ALL`         |
-| `PHP_XDEBUG_MODE`                 | `off`                   | `debug,develop` |
-| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0`                     | `1`             |
+| Environment Defaults (`PHP_ENV`)  | `production`            | `development`                              |
+| --------------------------------- | ----------------------- | ------------------------------------------ |
+| `PHP_DISPLAY_ERRORS`              | `Off`                   | `On`                                       |
+| `PHP_DISPLAY_STARTUP_ERRORS`      | `Off`                   | `On`                                       |
+| `PHP_ERROR_REPORTING`             | `E_ALL & ~E_DEPRECATED` | `E_ALL`                                    |
+| `PHP_XDEBUG_MODE`                 | `off`                   | `debug,develop`                            |
+| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0`                     | `1`                                        |
+| `FRANKENPHP_WORKER_WATCH`         | empty                   | `/opt/project/**/*.php,/opt/project/.env*` |
 
-Note: OPcache settings are applied for web requests; if OPcache is not loaded in CLI, `ini_get()` in CLI may not reflect those values.
+> If `FRANKENPHP_WORKER_WATCH` is set, workers automatically restart when matching files change. Useful for development to avoid having to restart workers manually; leave empty in production to avoid overhead.
 
 Other PHP settings:
 
@@ -151,10 +148,11 @@ For Herd-like "always on" debugging, use classic mode.
 
 ### Caddy
 
-| Variable      | Default               |
-| ------------- | --------------------- |
-| `SERVER_NAME` | `:80`                 |
-| `SERVER_ROOT` | `/opt/project/public` |
+| Variable      | Default |
+| ------------- | ------- |
+| `SERVER_NAME` | `:80`   |
+
+> The base FrankenPHP image we built upon automatically generates a TLS certificate for localhost and enforces HTTPS. This can cause compatibility issues with some Docker tooling (notably reverse proxies and Orbstack), so our new configuration adopts a more conventional setup instead. If you want to restore the original behavior, simply set `SERVER_NAME` to `localhost` and add a port mapping for 443.
 
 ## SSH for Private Composer Packages
 

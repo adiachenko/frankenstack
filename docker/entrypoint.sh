@@ -113,6 +113,14 @@ apply_php_env_defaults() {
             export PHP_OPCACHE_VALIDATE_TIMESTAMPS="0"
         fi
     fi
+
+    if [ -z "${FRANKENPHP_WORKER_WATCH:-}" ]; then
+        if [ "$env" = "development" ]; then
+            export FRANKENPHP_WORKER_WATCH="/opt/project/**/*.php,/opt/project/.env*"
+        else
+            export FRANKENPHP_WORKER_WATCH=""
+        fi
+    fi
 }
 
 # Process PHP configuration templates
