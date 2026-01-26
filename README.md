@@ -1,4 +1,4 @@
-# FrankenPHP Docker Image for Laravel
+# Frankenstack
 
 A FrankenPHP-based Docker image that supports both **classic PHP** and **Laravel Octane**, comes with batteries included, and lets you tweak PHP settings via environment variables.
 
@@ -9,7 +9,7 @@ A FrankenPHP-based Docker image that supports both **classic PHP** and **Laravel
 - **PostgreSQL 18 Client**: For migrations, artisan commands and dumps (supports any PostgreSQL Server ≥ 10)
 - **SSH Client**: Makes installing private Composer packages over SSH easy
 - **Composer 2**: Pre-installed for dependency management
-- **Node.js**: Two LTS versions (22 and 24) with runtime switching via `NODE_VERSION` env var
+- **Node.js**: Two latest LTS versions (22 and 24) with runtime switching via `NODE_VERSION` env var
 
 ## Included PHP Extensions
 
@@ -20,8 +20,6 @@ Extensions (alphabetical):
   `mysqlnd`, `opcache`, `openssl`, `pcntl`, `pcov`, `pcre`, `pdo`, `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, `phar`,
   `posix`, `random`, `readline`, `redis`, `reflection`, `session`, `simplexml`, `sockets`, `sodium`, `spl`, `sqlite3`,
   `standard`, `tokenizer`, `uv`, `xdebug`, `xml`, `xmlreader`, `xmlwriter`, `zip`, `zlib`
-
-If `PHP_ENV` is set to `development` (See [PHP Settings](#php-settings)), Xdebug is available automatically in "classic" mode and with trigger in "worker" mode (defaults to off in `production`).
 
 ## Quick Start
 
@@ -60,14 +58,10 @@ services:
 
 ## Classic vs Worker Mode
 
-### Classic Mode (Default)
-
 In classic mode, PHP boots fresh for each request. This is the traditional PHP execution model.
 
 - Best for: Simple, reliable deployments; applications with potential memory leaks; maximum compatibility with the wider PHP ecosystem.
 - Trade-off: Slower performance due to per-request bootstrap
-
-### Worker Mode (Laravel Octane)
 
 In worker mode, FrankenPHP keeps PHP workers alive between requests, eliminating bootstrap overhead.
 
@@ -85,23 +79,13 @@ In worker mode, FrankenPHP keeps PHP workers alive between requests, eliminating
 | `REQUEST_TIMEOUT`   | `60` (seconds)                              |
 | `NODE_VERSION`      | `24` (also supports `22`)                   |
 
-The `REQUEST_TIMEOUT` variable controls multiple timeouts:
-
-- **PHP `max_execution_time`**: Set to the parsed seconds value
-- **Caddy `read_body` timeout**: REQUEST_TIMEOUT + 5 seconds
-- **Caddy `write` timeout**: REQUEST_TIMEOUT + 10 seconds
-
-The buffer ensures Caddy doesn't kill connections before PHP can return error responses.
-
-**Note:** PHP CLI commands (like `php artisan migrate`) ignore `max_execution_time` by default, so they run without time limits regardless of this setting.
+`REQUEST_TIMEOUT` sets PHP’s `max_execution_time` and Caddy’s `read_body` (+5s) and `write` (+10s) timeouts. The added buffer prevents Caddy from closing connections before PHP can return errors.
 
 ### PHP Settings
 
-> **IMPORTANT:** `PHP_ENV` defaults to `production`.
->
-> Set `PHP_ENV` to `development` to switch to dev-friendly defaults.
+Set `PHP_ENV` environment variable to `development` to switch to dev-friendly defaults. `PHP_ENV` defaults to `production`.
 
-When set, `PHP_ENV` applies these defaults (unless explicitly overridden):
+`PHP_ENV` applies these defaults (unless specific setting is explicitly overridden):
 
 | Environment Defaults (`PHP_ENV`)  | `production`            | `development`                              |
 | --------------------------------- | ----------------------- | ------------------------------------------ |
@@ -113,6 +97,8 @@ When set, `PHP_ENV` applies these defaults (unless explicitly overridden):
 | `FRANKENPHP_WORKER_WATCH`         | empty                   | `/opt/project/**/*.php,/opt/project/.env*` |
 
 > If `FRANKENPHP_WORKER_WATCH` is set, workers automatically restart when matching files change. Useful for development to avoid having to restart workers manually; leave empty in production to avoid overhead.
+
+**Xdebug** is available automatically in "classic" mode and with trigger in "worker" mode in `development` environment.
 
 Other PHP settings:
 
@@ -129,15 +115,7 @@ Other PHP settings:
 | `PHP_XDEBUG_CLIENT_HOST`              | `host.docker.internal`             |
 | `PHP_XDEBUG_CLIENT_PORT`              | `9003`                             |
 
-When using Xdebug with `worker` mode:
-
-- **Use [triggers](https://xdebug.org/docs/all_settings#start_with_request)** (default in worker mode) - works reliably with workers
-- **Do NOT use `PHP_XDEBUG_START_WITH_REQUEST=yes`** with worker mode - it causes workers to hang during boot
-- Avoid `PHP_XDEBUG_START_UPON_ERROR=yes` in worker mode unless you know boot is error-free and your IDE is listening
-- Boot-time code (service providers, etc.) runs before triggers are evaluated
-- If IDE isn't listening, triggered requests may hang until `connect_timeout_ms` (200ms) expires
-
-For Herd-like "always on" debugging, use classic mode.
+> Xdebug defaults are different in `worker` mode because it can cause workers to hang during boot unless explicitly triggered. For Herd-like "always on" debugging, use classic mode.
 
 ### SSH Settings
 
@@ -152,7 +130,7 @@ For Herd-like "always on" debugging, use classic mode.
 | ------------- | ------- |
 | `SERVER_NAME` | `:80`   |
 
-> The base FrankenPHP image we built upon automatically generates a TLS certificate for localhost and enforces HTTPS. This can cause compatibility issues with some Docker tooling (notably reverse proxies and Orbstack), so our new configuration adopts a more conventional setup instead. If you want to restore the original behavior, simply set `SERVER_NAME` to `localhost` and add a port mapping for 443.
+> The base FrankenPHP image automatically generates a TLS certificate for localhost and enforces HTTPS. This can cause compatibility issues with some Docker tooling (notably reverse proxies and Orbstack), so our defaults adopt a more conventional setup instead. If you want to restore the original behavior, simply set `SERVER_NAME` to `localhost` and add a port mapping for 443.
 
 ## SSH for Private Composer Packages
 
@@ -162,6 +140,8 @@ The image supports downloading private Composer packages via SSH with two modes:
 2. **Key Secret** (All platforms) - Mount an SSH key file as a Docker secret
 
 ### macOS / Linux (Agent Forwarding)
+
+Technically more secure, but limited in compatibility:
 
 ```yaml
 services:
@@ -174,7 +154,9 @@ services:
       SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}
 ```
 
-### Windows / CI / Production (Key Secret)
+### Windows / CI / Universal settings (Key Secret)
+
+If you're on a team with Windows devs, this is your go-to:
 
 ```yaml
 services:
@@ -199,24 +181,7 @@ environment:
 
 ### Self-hosted Git (Custom known_hosts)
 
-For self-hosted Git servers, mount a custom `known_hosts` file instead of relying on ssh-keyscan:
-
-```yaml
-services:
-  app:
-    build: ./docker
-    secrets:
-      - ssh_key
-      - ssh_known_hosts
-    environment:
-      SSH_KNOWN_HOSTS: '' # Disable ssh-keyscan
-
-secrets:
-  ssh_key:
-    file: ~/.ssh/id_ed25519
-  ssh_known_hosts:
-    file: ./docker/known_hosts
-```
+Using a self-hosted Git server? Mount a `known_hosts` file as a secret and set `SSH_KNOWN_HOSTS=''` to disable `ssh-keyscan`. The entrypoint will use your mounted `known_hosts` and won’t rely on TOFU.
 
 ## Running CLI Commands
 
