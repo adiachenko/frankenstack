@@ -16,7 +16,7 @@
 {$CADDY_EXTRA_CONFIG}
 
 {$SERVER_NAME} {
-    root * {$SERVER_ROOT}
+    root * {$SERVER_ROOT:/opt/project/public}
     encode zstd br gzip
 
     {$CADDY_SERVER_EXTRA_DIRECTIVES}

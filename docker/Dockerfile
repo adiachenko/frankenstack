@@ -133,11 +133,10 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 ENV NODE_VERSION=24 \
     PHP_ENV=production \
     FRANKENPHP_MODE=classic \
-    FRANKENPHP_WORKER=/app/public/frankenphp-worker.php \
+    FRANKENPHP_WORKER=/opt/project/public/frankenphp-worker.php \
     FRANKENPHP_WORKER_WATCH="" \
     REQUEST_TIMEOUT=60 \
     SERVER_NAME=:80 \
-    SERVER_ROOT=/app/public \
     PHP_MEMORY_LIMIT=256M \
     PHP_POST_MAX_SIZE=8M \
     PHP_UPLOAD_MAX_SIZE=2M \
@@ -150,6 +149,8 @@ ENV NODE_VERSION=24 \
     SSH_KNOWN_HOSTS="github.com,gitlab.com,bitbucket.org" \
     # Default socket path for SSH agent (used when loading keys from secrets)
     SSH_AUTH_SOCK="/tmp/ssh-agent.sock"
+
+WORKDIR /opt/project
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["--config", "/etc/frankenphp/Caddyfile"]
