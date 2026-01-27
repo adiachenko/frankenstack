@@ -1,5 +1,5 @@
 # check=skip=SecretsUsedInArgOrEnv
-FROM dunglas/frankenphp:1.11.1-php8.4.17-trixie
+FROM dunglas/frankenphp:1.11.1-php8.5.2-trixie
 
 LABEL org.opencontainers.image.source=https://github.com/adiachenko/frankenstack
 
