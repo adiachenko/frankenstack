@@ -334,8 +334,6 @@ These commands spin up a temporary container, execute the command, and exit—by
 
 ## Creating Images
 
-> **TODO**: Repalce tag
-
 For development and testing:
 
 ```bash
