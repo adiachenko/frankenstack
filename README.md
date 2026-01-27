@@ -2,12 +2,40 @@
 
 **Laravel**‑focused FrankenPHP Docker image for classic PHP or Octane, batteries included, configurable via env.
 
+## Table of Contents
+
+- [Included Tools](#included-tools)
+- [Included PHP Extensions](#included-php-extensions)
+- [Quick Start](#quick-start)
+- [Worker Mode (requires Laravel Octane)](#worker-mode-requires-laravel-octane)
+- [Classic vs Worker Mode](#classic-vs-worker-mode)
+- [Environment Variables](#environment-variables)
+  - [Application Settings](#application-settings)
+  - [PHP Settings](#php-settings)
+  - [SSH Settings](#ssh-settings)
+  - [Caddy](#caddy)
+- [Private Composer Packages](#private-composer-packages)
+  - [Token Authentication](#token-authentication)
+    - [GitHub](#github)
+    - [GitLab](#gitlab)
+  - [SSH Authentication](#ssh-authentication)
+    - [macOS / Linux (Agent Forwarding)](#macos--linux-agent-forwarding)
+    - [Universal Method (Key Secret)](#universal-method-key-secret)
+    - [Self-hosted Git (Custom known_hosts)](#self-hosted-git-custom-known_hosts)
+- [Private NPM Packages](#private-npm-packages)
+  - [Token Authentication](#token-authentication-1)
+    - [GitHub Packages](#github-packages)
+    - [GitLab Packages](#gitlab-packages)
+  - [SSH Authentication](#ssh-authentication-1)
+- [Running CLI Commands](#running-cli-commands)
+- [Creating Images](#creating-images)
+
 ## Included Tools
 
 - **SQLite 3**: Available for local database testing
 - **MySQL 8.4 Client**: For migrations, artisan commands and dumps (supports any MySQL Server ≥ 5.7)
 - **PostgreSQL 18 Client**: For migrations, artisan commands and dumps (supports any PostgreSQL Server ≥ 10)
-- **SSH Client**: For some SSH-based Git operations (GitHub/GitLab can alternatively use tokens via `COMPOSER_AUTH`)
+- **SSH Client**: For some SSH-based Git operations (GitHub/GitLab can use tokens via `COMPOSER_AUTH`)
 - **Composer 2**: Pre-installed for dependency management
 - **Node.js**: Two latest LTS versions (22 and 24) with runtime switching via `NODE_VERSION` env var
 
@@ -28,7 +56,7 @@ Create `docker-compose.yml` file in your Laravel project:
 ```sh
 services:
   app:
-    image: frankenstack
+    image: ghcr.io/adiachenko/frankenstack
     environment:
       - PHP_ENV: development
     ports:
@@ -46,7 +74,7 @@ To run the app server in worker mode, set `FRANKENPHP_MODE` environment variable
 ```sh
 services:
   app:
-    image: frankenstack
+    image: ghcr.io/adiachenko/frankenstack
     environment:
       - PHP_ENV: development
       - FRANKENPHP_MODE: worker
@@ -132,18 +160,22 @@ Other PHP settings:
 
 > The base FrankenPHP image automatically generates a TLS certificate for localhost and enforces HTTPS. This can cause compatibility issues with some Docker tooling (notably reverse proxies and Orbstack), so our defaults adopt a more conventional setup instead. If you want to restore the original behavior, simply set `SERVER_NAME` to `localhost` and add a port mapping for 443.
 
-## Private Composer Packages via Tokens
+## Private Composer Packages
 
-For GitHub and GitLab, token-based auth via `COMPOSER_AUTH` is simpler than SSH. Create a Personal Access Token and pass it as an environment variable.
+### Token Authentication
 
-### GitHub
+For **GitHub** and **GitLab**, token-based auth via `COMPOSER_AUTH` is simpler than SSH. Create a Personal Access Token and pass it as an environment variable.
+
+> **Bitbucket** requires OAuth consumer credentials (key + secret) for token auth, making SSH a simpler option (see next article).
+
+#### GitHub
 
 Create a token: GitHub → Settings → Developer settings → Personal access tokens → Generate (classic token, with `repo` scope).
 
 ```yaml
 services:
   app:
-    image: frankenstack
+    image: ghcr.io/adiachenko/frankenstack
     volumes:
       - ./:/opt/project
     environment:
@@ -156,14 +188,14 @@ Store token in `.env`:
 GITHUB_TOKEN=ghp_xxx
 ```
 
-### GitLab
+#### GitLab
 
 Create a token: GitLab → User Settings → Personal access tokens → Generate (with `read_api` and `read_repository` scopes).
 
 ```yaml
 services:
   app:
-    image: frankenstack
+    image: ghcr.io/adiachenko/frankenstack
     volumes:
       - ./:/opt/project
     environment:
@@ -178,25 +210,21 @@ Store token in `.env`:
 GITLAB_TOKEN=glpat-xxx
 ```
 
-### What about Bitbucket?
+### SSH Authentication
 
-Bitbucket requires OAuth consumer credentials (key + secret) for token auth, making SSH a much simpler option. See next section.
-
-## SSH for Private Composer Packages
-
-Alternatively, the image supports downloading private Composer packages via SSH with two modes:
+The image supports downloading private Composer packages via SSH with two modes:
 
 1. **Agent Forwarding** (macOS/Linux) - Forward your host's SSH agent into the container
 2. **Key Secret** (All platforms) - Mount an SSH key file as a Docker secret
 
-### macOS / Linux (Agent Forwarding)
+#### macOS / Linux (Agent Forwarding)
 
-Technically more secure, but limited in compatibility:
+Technically more secure, but limited in OS compatibility:
 
 ```yaml
 services:
   app:
-    image: frankenstack
+    image: ghcr.io/adiachenko/frankenstack
     volumes:
       - ./:/opt/project
       - ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}
@@ -204,14 +232,14 @@ services:
       SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}
 ```
 
-### Windows / CI / Universal settings (Key Secret)
+#### Universal Method (Key Secret)
 
-If you're on a team with Windows devs, this is your go-to:
+If you're on a team with Windows devs, this is your best option:
 
 ```yaml
 services:
   app:
-    image: frankenstack
+    image: ghcr.io/adiachenko/frankenstack
     volumes:
       - ./:/opt/project
     secrets:
@@ -229,9 +257,63 @@ environment:
   SSH_KEY_PASSPHRASE: ${SSH_KEY_PASSPHRASE:-}
 ```
 
-### Self-hosted Git (Custom known_hosts)
+#### Self-hosted Git (Custom known_hosts)
 
-Using a self-hosted Git server? Mount a `known_hosts` file as a secret and set `SSH_KNOWN_HOSTS=''` to disable `ssh-keyscan`. The entrypoint will use your mounted `known_hosts` and won’t rely on TOFU.
+Using a self-hosted Git server? Mount a `known_hosts` file as a secret and set `SSH_KNOWN_HOSTS=''` to disable `ssh-keyscan`. The entrypoint will use your mounted `known_hosts` and won't rely on TOFU.
+
+## Private NPM Packages
+
+### Token Authentication
+
+For private npm packages, create a `.npmrc` file in your project root that references an environment variable.
+
+#### GitHub Packages
+
+Create a token: GitHub → Settings → Developer settings → Personal access tokens → Generate (classic token, with `read:packages` scope).
+
+Add `.npmrc` to your project (replace `OWNER` with the GitHub org or username):
+
+```
+@OWNER:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+```yaml
+services:
+  app:
+    image: ghcr.io/adiachenko/frankenstack
+    volumes:
+      - ./:/opt/project
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+```
+
+#### GitLab Packages
+
+Create a token: GitLab → User Settings → Personal access tokens → Generate (with `read_api` scope).
+
+Add `.npmrc` to your project (replace `OWNER` with your GitLab group or username, and `PROJECT_ID` with your project ID):
+
+```
+@OWNER:registry=https://gitlab.com/api/v4/projects/PROJECT_ID/packages/npm/
+//gitlab.com/api/v4/projects/PROJECT_ID/packages/npm/:_authToken=${GITLAB_TOKEN}
+```
+
+```yaml
+services:
+  app:
+    image: ghcr.io/adiachenko/frankenstack
+    volumes:
+      - ./:/opt/project
+    environment:
+      GITLAB_TOKEN: ${GITLAB_TOKEN}
+```
+
+For self-hosted GitLab, replace `gitlab.com` with your instance hostname.
+
+### SSH Authentication
+
+NPM supports Git URLs for dependencies. If your `package.json` uses SSH URLs, the same SSH configuration from the Composer section applies—use agent forwarding or key secrets. The main downside of installing an npm package directly from a Git repository is that you effectively lose proper versioning. You must pin to a branch or tag instead of using semver, and installs are no longer based on immutable, registry-hosted tarballs—making builds less reproducible.
 
 ## Running CLI Commands
 
@@ -252,8 +334,25 @@ These commands spin up a temporary container, execute the command, and exit—by
 
 ## Creating Images
 
-> **TODO**: Document multi-platform builds with pushes to GitHub container registry
+> **TODO**: Repalce tag
+
+For development and testing:
 
 ```bash
 docker build -t frankenstack ./docker
+```
+
+For publishing (clean multi-arch artifact for both ARM and x86):
+
+> Replace TAG
+
+```bash
+# Replace `main` with PHP version target (e.g. `8.5`)
+git checkout main
+
+# Replace `latest` with PHP version target (e.g. `8.5`)
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t ghcr.io/adiachenko/frankenstack:latest \
+  --push ./docker
 ```

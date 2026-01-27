@@ -1,6 +1,8 @@
 # check=skip=SecretsUsedInArgOrEnv
 FROM dunglas/frankenphp:1.11.1-php8.4.17-trixie
 
+LABEL org.opencontainers.image.source=https://github.com/adiachenko/frankenstack
+
 # Node.js version build args (used_below)
 ARG NODE_22_VERSION=22.22.0
 ARG NODE_24_VERSION=24.13.0
