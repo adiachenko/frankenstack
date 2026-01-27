@@ -1,11 +1,11 @@
 # check=skip=SecretsUsedInArgOrEnv
 FROM dunglas/frankenphp:1.11.1-php8.4.17-trixie
 
-# Node.js version build args (update these for new LTS releases)
+# Node.js version build args (used_below)
 ARG NODE_22_VERSION=22.22.0
 ARG NODE_24_VERSION=24.13.0
 
-# MySQL version build arg
+# MySQL version build arg (used_below)
 ARG MYSQL_VERSION=8.4.8
 
 # Install Composer
@@ -15,6 +15,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gettext-base \
     git \
+    unzip \
     openssh-client \
     sqlite3 \
     vim-tiny \
@@ -47,13 +48,12 @@ RUN install-php-extensions \
     xdebug \
     zip
 
-# Use production PHP configuration as base
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Remove default opcache config (we provide our own)
 RUN rm -f "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini"
 
-# Install Node.js (both LTS versions)
+# Pre-install latest 2 LTS versions of Node.js
 RUN set -eux; \
     # Map Docker architecture to Node.js architecture
     case "$(dpkg --print-architecture)" in \
@@ -121,15 +121,13 @@ RUN set -eux; \
     # Verify installation
     psql --version
 
-# Copy configuration templates
 COPY php/*.tpl $PHP_INI_DIR/conf.d/
 COPY caddy/Caddyfile /etc/frankenphp/Caddyfile
 
-# Copy entrypoint
 COPY entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Set default environment variables
+# Set default environment variables (see entrypoint.sh for defaults dependent on PHP_ENV)
 ENV NODE_VERSION=24 \
     PHP_ENV=production \
     FRANKENPHP_MODE=classic \

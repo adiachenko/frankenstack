@@ -1,13 +1,13 @@
 # Frankenstack
 
-**Laravel**‑focused FrankenPHP Docker image for classic PHP or Octane, batteries included, configurable via env vars.
+**Laravel**‑focused FrankenPHP Docker image for classic PHP or Octane, batteries included, configurable via env.
 
 ## Included Tools
 
 - **SQLite 3**: Available for local database testing
 - **MySQL 8.4 Client**: For migrations, artisan commands and dumps (supports any MySQL Server ≥ 5.7)
 - **PostgreSQL 18 Client**: For migrations, artisan commands and dumps (supports any PostgreSQL Server ≥ 10)
-- **SSH Client**: Makes installing private Composer packages over SSH easy
+- **SSH Client**: For some SSH-based Git operations (GitHub/GitLab can alternatively use tokens via `COMPOSER_AUTH`)
 - **Composer 2**: Pre-installed for dependency management
 - **Node.js**: Two latest LTS versions (22 and 24) with runtime switching via `NODE_VERSION` env var
 
@@ -132,9 +132,59 @@ Other PHP settings:
 
 > The base FrankenPHP image automatically generates a TLS certificate for localhost and enforces HTTPS. This can cause compatibility issues with some Docker tooling (notably reverse proxies and Orbstack), so our defaults adopt a more conventional setup instead. If you want to restore the original behavior, simply set `SERVER_NAME` to `localhost` and add a port mapping for 443.
 
+## Private Composer Packages via Tokens
+
+For GitHub and GitLab, token-based auth via `COMPOSER_AUTH` is simpler than SSH. Create a Personal Access Token and pass it as an environment variable.
+
+### GitHub
+
+Create a token: GitHub → Settings → Developer settings → Personal access tokens → Generate (classic token, with `repo` scope).
+
+```yaml
+services:
+  app:
+    image: frankenstack
+    volumes:
+      - ./:/opt/project
+    environment:
+      COMPOSER_AUTH: '{"github-oauth":{"github.com":"${GITHUB_TOKEN}"}}'
+```
+
+Store token in `.env`:
+
+```
+GITHUB_TOKEN=ghp_xxx
+```
+
+### GitLab
+
+Create a token: GitLab → User Settings → Personal access tokens → Generate (with `read_api` and `read_repository` scopes).
+
+```yaml
+services:
+  app:
+    image: frankenstack
+    volumes:
+      - ./:/opt/project
+    environment:
+      COMPOSER_AUTH: '{"gitlab-token":{"gitlab.com":"${GITLAB_TOKEN}"}}'
+```
+
+For self-hosted GitLab, replace `gitlab.com` with your instance hostname.
+
+Store token in `.env`:
+
+```
+GITLAB_TOKEN=glpat-xxx
+```
+
+### What about Bitbucket?
+
+Bitbucket requires OAuth consumer credentials (key + secret) for token auth, making SSH a much simpler option. See next section.
+
 ## SSH for Private Composer Packages
 
-The image supports downloading private Composer packages via SSH with two modes:
+Alternatively, the image supports downloading private Composer packages via SSH with two modes:
 
 1. **Agent Forwarding** (macOS/Linux) - Forward your host's SSH agent into the container
 2. **Key Secret** (All platforms) - Mount an SSH key file as a Docker secret

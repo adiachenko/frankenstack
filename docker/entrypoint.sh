@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-# Configure Node.js version symlinks
 setup_node_version() {
     case "$NODE_VERSION" in
         22|24)
@@ -10,7 +9,6 @@ setup_node_version() {
             ln -sf "${node_bin}/npm" /usr/local/bin/npm
             ln -sf "${node_bin}/npx" /usr/local/bin/npx
             ln -sf "${node_bin}/corepack" /usr/local/bin/corepack
-            echo "Node.js $(node --version) active"
             ;;
         *)
             echo "ERROR: Invalid NODE_VERSION '$NODE_VERSION'. Supported: 22, 24" >&2
@@ -19,15 +17,13 @@ setup_node_version() {
     esac
 }
 
-# Export timeout-related environment variables
-setup_timeouts() {
+apply_timeouts() {
     export PHP_MAX_EXECUTION_TIME="$REQUEST_TIMEOUT"
     export CADDY_READ_TIMEOUT="$((REQUEST_TIMEOUT + 5))s"
     export CADDY_WRITE_TIMEOUT="$((REQUEST_TIMEOUT + 10))s"
 }
 
-# Resolve the effective mode (worker requires a valid worker script)
-resolve_effective_mode() {
+resolve_frankenphp_mode() {
     local mode="${FRANKENPHP_MODE:-classic}"
 
     if [ "$mode" = "worker" ] && [ ! -f "$FRANKENPHP_WORKER" ]; then
@@ -38,8 +34,7 @@ resolve_effective_mode() {
     export FRANKENPHP_MODE="$mode"
 }
 
-# Apply mode-aware defaults without clobbering explicit overrides
-apply_mode_defaults() {
+apply_frankenphp_mode_defaults() {
     local mode="${FRANKENPHP_MODE:-classic}"
 
     if [ -z "${PHP_XDEBUG_START_WITH_REQUEST:-}" ]; then
@@ -57,10 +52,8 @@ apply_mode_defaults() {
             export PHP_XDEBUG_START_UPON_ERROR="yes"
         fi
     fi
-
 }
 
-# Apply PHP_ENV-aware defaults without clobbering explicit overrides
 apply_php_env_defaults() {
     local env="${PHP_ENV:-production}"
 
@@ -123,8 +116,7 @@ apply_php_env_defaults() {
     fi
 }
 
-# Process PHP configuration templates
-process_templates() {
+process_php_conf_templates() {
     local conf_dir="$PHP_INI_DIR/conf.d"
 
     for tpl in "$conf_dir"/*.tpl; do
@@ -136,7 +128,6 @@ process_templates() {
     done
 }
 
-# Configure SSH for private Composer packages
 setup_ssh() {
     local ssh_dir="/root/.ssh"
 
@@ -153,16 +144,15 @@ setup_ssh() {
     if [ -n "${SSH_AUTH_SOCK:-}" ] && [ -S "${SSH_AUTH_SOCK}" ] && ssh-add -l >/dev/null 2>&1; then
         echo "SSH: Using forwarded agent ($(ssh-add -l 2>/dev/null | wc -l | xargs) keys)"
     elif [ -f "/run/secrets/ssh_key" ]; then
-        setup_ssh_from_secret
+        setup_ssh_from_docker_secret
     fi
 }
 
-# Configure SSH known_hosts
 setup_ssh_known_hosts() {
     local ssh_dir="$1"
     local known_hosts="$ssh_dir/known_hosts"
 
-    # Prefer mounted known_hosts (more secure than TOFU)
+    # Prefer mounted known_hosts
     if [ -f "/run/secrets/ssh_known_hosts" ]; then
         cp /run/secrets/ssh_known_hosts "$known_hosts"
         chmod 644 "$known_hosts"
@@ -178,22 +168,17 @@ setup_ssh_known_hosts() {
             [ -n "$host" ] && ssh-keyscan -H "$host" >> "$known_hosts" 2>/dev/null
         done
         chmod 644 "$known_hosts"
-        echo "SSH: known_hosts configured via ssh-keyscan"
     fi
 }
 
-# Load SSH key from Docker secret
-setup_ssh_from_secret() {
-    # Start ssh-agent with fixed socket path
+setup_ssh_from_docker_secret() {
     local socket_path="/tmp/ssh-agent.sock"
     rm -f "$socket_path"
     ssh-agent -a "$socket_path" >/dev/null
     export SSH_AUTH_SOCK="$socket_path"
 
-    # Get passphrase from environment variable (if set)
     local passphrase="${SSH_KEY_PASSPHRASE:-}"
 
-    # Load key with passphrase via SSH_ASKPASS
     if [ -n "$passphrase" ]; then
         local askpass="/tmp/ssh_askpass_$$"
         printf '#!/bin/sh\necho "%s"\n' "$passphrase" > "$askpass"
@@ -210,7 +195,6 @@ setup_ssh_from_secret() {
     echo "SSH: Agent started with $(ssh-add -l 2>/dev/null | wc -l | xargs) key(s)"
 }
 
-# Configure worker mode if enabled
 setup_worker_mode() {
     [ "${FRANKENPHP_MODE:-classic}" = "worker" ] || return 0
 
@@ -221,10 +205,11 @@ setup_worker_mode() {
         for pattern in $FRANKENPHP_WORKER_WATCH; do
             # Trim leading/trailing whitespace
             pattern=$(echo "$pattern" | xargs)
-            [ -n "$pattern" ] && watch_config="${watch_config}watch \"$pattern\"
-        "
-    done
-    echo "FrankenPHP file watching enabled: $FRANKENPHP_WORKER_WATCH"
+            if [ -n "$pattern" ]; then
+                [ -n "$watch_config" ] && watch_config+=$'\n'"        "
+                watch_config+="watch \"$pattern\""
+            fi
+        done
     fi
 
     export FRANKENPHP_WORKER_CONFIG="worker {
@@ -235,28 +220,23 @@ setup_worker_mode() {
     export PHP_SERVER_CONFIG="index $worker_filename
         try_files {path} $worker_filename
         resolve_root_symlink"
-
-    echo "FrankenPHP worker mode enabled with: $FRANKENPHP_WORKER"
 }
 
-# Main entrypoint logic
 main() {
     setup_node_version
-    setup_timeouts
-    resolve_effective_mode
+    apply_timeouts
+    resolve_frankenphp_mode
     apply_php_env_defaults
-    apply_mode_defaults
-    process_templates
+    apply_frankenphp_mode_defaults
+    process_php_conf_templates
     setup_ssh
     setup_worker_mode
 
-    # If a command is passed and it's not a frankenphp flag, run it directly
-    # e.g. docker compose run --rm app composer install
+    # If a command is passed and it's not a frankenphp flag, run it directly (e.g. composer install)
     if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
         exec "$@"
     fi
 
-    # Execute FrankenPHP
     exec frankenphp run "$@"
 }
 
