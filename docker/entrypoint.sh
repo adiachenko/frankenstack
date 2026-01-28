@@ -31,6 +31,11 @@ resolve_frankenphp_mode() {
         mode="classic"
     fi
 
+    # Unset $_SERVER['FRANKENPHP_WORKER'] in classic mode to prevent Symfony from incorrectly detecting worker
+    if [ "$mode" = "classic" ]; then
+        unset FRANKENPHP_WORKER
+    fi
+
     export FRANKENPHP_MODE="$mode"
 }
 
@@ -109,7 +114,12 @@ apply_php_env_defaults() {
 
     if [ -z "${FRANKENPHP_WORKER_WATCH:-}" ]; then
         if [ "$env" = "development" ]; then
-            export FRANKENPHP_WORKER_WATCH="/opt/project/**/*.php,/opt/project/.env*"
+            export FRANKENPHP_WORKER_WATCH="$(cat <<'EOF'
+/opt/project/**/*.php
+/opt/project/**/*.{yaml,yml}
+/opt/project/.env*
+EOF
+)"
         else
             export FRANKENPHP_WORKER_WATCH=""
         fi
@@ -195,25 +205,42 @@ setup_ssh_from_docker_secret() {
     echo "SSH: Agent started with $(ssh-add -l 2>/dev/null | wc -l | xargs) key(s)"
 }
 
+# Parse watch patterns: one pattern per line, supports # comments
+parse_watch_patterns() {
+    local input="$1"
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line=$(printf '%s' "$line" | xargs)
+        [[ -z "$line" || "$line" == \#* ]] && continue
+        echo "$line"
+    done <<< "$input"
+}
+
 setup_worker_mode() {
     [ "${FRANKENPHP_MODE:-classic}" = "worker" ] || return 0
 
     local worker_filename="${FRANKENPHP_WORKER##*/}"
     local watch_config=""
+    local max_requests_config=""
+
+    if [ -n "${FRANKENPHP_MAX_REQUESTS:-}" ]; then
+        if [[ "$FRANKENPHP_MAX_REQUESTS" =~ ^[0-9]+$ ]] && [ "$FRANKENPHP_MAX_REQUESTS" -gt 0 ]; then
+            max_requests_config="max_requests $FRANKENPHP_MAX_REQUESTS"
+        fi
+    fi
     if [ -n "$FRANKENPHP_WORKER_WATCH" ]; then
-        local IFS=','
-        for pattern in $FRANKENPHP_WORKER_WATCH; do
-            # Trim leading/trailing whitespace
+        while IFS= read -r pattern; do
             pattern=$(echo "$pattern" | xargs)
             if [ -n "$pattern" ]; then
                 [ -n "$watch_config" ] && watch_config+=$'\n'"        "
                 watch_config+="watch \"$pattern\""
             fi
-        done
+        done < <(parse_watch_patterns "$FRANKENPHP_WORKER_WATCH")
     fi
 
     export FRANKENPHP_WORKER_CONFIG="worker {
         file \"$FRANKENPHP_WORKER\"
+        $max_requests_config
         $watch_config
     }"
 

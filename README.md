@@ -9,6 +9,7 @@
 - [Version Support](#version-support)
 - [Quick Start](#quick-start)
 - [Worker Mode (requires Laravel Octane)](#worker-mode-requires-laravel-octane)
+- [Symfony Framework](#symfony-framework)
 - [Classic vs Worker Mode](#classic-vs-worker-mode)
 - [Environment Variables](#environment-variables)
   - [Application Settings](#application-settings)
@@ -60,12 +61,12 @@ When a PHP version reaches end-of-life or falls out of our support window, its t
 
 Create `docker-compose.yml` file in your Laravel project:
 
-```sh
+```yaml
 services:
   app:
     image: ghcr.io/adiachenko/frankenstack
     environment:
-      - PHP_ENV: development
+      PHP_ENV: development
     ports:
       - 8000:80
     volumes:
@@ -74,21 +75,43 @@ services:
 
 By default, frankenstack runs the app server in [classic](https://frankenphp.dev/docs/classic/) mode which is similar to PHP-FPM with Nginx.
 
-## Worker Mode (requires Laravel Octane)
+## Worker Mode (Laravel Octane)
 
 To run the app server in worker mode, set `FRANKENPHP_MODE` environment variable:
 
-```sh
+> Always use a **restart** policy (see below) for automatic recovery in worker mode. Containers may crash on unhandled exceptions otherwise.
+
+```yaml
 services:
   app:
     image: ghcr.io/adiachenko/frankenstack
     environment:
-      - PHP_ENV: development
-      - FRANKENPHP_MODE: worker
+      PHP_ENV: development
+      FRANKENPHP_MODE: worker
     ports:
       - 8000:80
     volumes:
       - ./:/opt/project
+    restart: on-failure
+```
+
+## Symfony Framework
+
+Symfony works out of the box in classic mode. For **worker** mode, override default `FRANKENPHP_WORKER`:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/adiachenko/frankenstack
+    environment:
+      PHP_ENV: development
+      FRANKENPHP_MODE: worker
+      FRANKENPHP_WORKER: /opt/project/public/index.php
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/opt/project
+    restart: on-failure
 ```
 
 ## Classic vs Worker Mode
@@ -107,12 +130,13 @@ In worker mode, FrankenPHP keeps PHP workers alive between requests, eliminating
 
 ### Application Settings
 
-| Variable            | Default                                     |
-| ------------------- | ------------------------------------------- |
-| `FRANKENPHP_MODE`   | `classic` (also supports `worker`)          |
-| `FRANKENPHP_WORKER` | `/opt/project/public/frankenphp-worker.php` |
-| `REQUEST_TIMEOUT`   | `60` (seconds)                              |
-| `NODE_VERSION`      | `24` (also supports `22`)                   |
+| Variable                  | Default                                     |
+| ------------------------- | ------------------------------------------- |
+| `FRANKENPHP_MODE`         | `classic` (also supports `worker`)          |
+| `FRANKENPHP_WORKER`       | `/opt/project/public/frankenphp-worker.php` |
+| `FRANKENPHP_MAX_REQUESTS` | unset (no limit)                            |
+| `REQUEST_TIMEOUT`         | `60` (seconds)                              |
+| `NODE_VERSION`            | `24` (also supports `22`)                   |
 
 `REQUEST_TIMEOUT` sets PHP’s `max_execution_time` and Caddy’s `read_body` (+5s) and `write` (+10s) timeouts. The added buffer prevents Caddy from closing connections before PHP can return errors.
 
@@ -122,16 +146,25 @@ Set `PHP_ENV` environment variable to `development` to switch to dev-friendly de
 
 `PHP_ENV` applies these defaults (unless specific setting is explicitly overridden):
 
-| Environment Defaults (`PHP_ENV`)  | `production`            | `development`                              |
-| --------------------------------- | ----------------------- | ------------------------------------------ |
-| `PHP_DISPLAY_ERRORS`              | `Off`                   | `On`                                       |
-| `PHP_DISPLAY_STARTUP_ERRORS`      | `Off`                   | `On`                                       |
-| `PHP_ERROR_REPORTING`             | `E_ALL & ~E_DEPRECATED` | `E_ALL`                                    |
-| `PHP_XDEBUG_MODE`                 | `off`                   | `debug,develop`                            |
-| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0`                     | `1`                                        |
-| `FRANKENPHP_WORKER_WATCH`         | empty                   | `/opt/project/**/*.php,/opt/project/.env*` |
+| Environment Defaults (`PHP_ENV`)  | `production`            | `development`   |
+| --------------------------------- | ----------------------- | --------------- |
+| `PHP_DISPLAY_ERRORS`              | `Off`                   | `On`            |
+| `PHP_DISPLAY_STARTUP_ERRORS`      | `Off`                   | `On`            |
+| `PHP_ERROR_REPORTING`             | `E_ALL & ~E_DEPRECATED` | `E_ALL`         |
+| `PHP_XDEBUG_MODE`                 | `off`                   | `debug,develop` |
+| `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0`                     | `1`             |
+| `FRANKENPHP_WORKER_WATCH`         | empty                   | see below       |
 
-> If `FRANKENPHP_WORKER_WATCH` is set, workers automatically restart when matching files change. Useful for development to avoid having to restart workers manually; leave empty in production to avoid overhead.
+**`FRANKENPHP_WORKER_WATCH`** configures file patterns that trigger worker restarts (one pattern per line).
+
+```yaml
+environment:
+  # Default development value for FRANKENPHP_WORKER_WATCH
+  FRANKENPHP_WORKER_WATCH: |
+    /opt/project/**/*.php
+    /opt/project/**/*.{yaml,yml}
+    /opt/project/.env*
+```
 
 **Xdebug** is available automatically in "classic" mode and with trigger in "worker" mode in `development` environment.
 

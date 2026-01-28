@@ -1,5 +1,5 @@
 # check=skip=SecretsUsedInArgOrEnv
-FROM dunglas/frankenphp:1.11.1-php8.4.17-trixie
+FROM dunglas/frankenphp:1.11.1-php8.5.2-trixie
 
 LABEL org.opencontainers.image.source=https://github.com/adiachenko/frankenstack
 
@@ -134,6 +134,7 @@ ENV NODE_VERSION=24 \
     PHP_ENV=production \
     FRANKENPHP_MODE=classic \
     FRANKENPHP_WORKER=/opt/project/public/frankenphp-worker.php \
+    FRANKENPHP_MAX_REQUESTS= \
     REQUEST_TIMEOUT=60 \
     SERVER_NAME=:80 \
     PHP_MEMORY_LIMIT=256M \
