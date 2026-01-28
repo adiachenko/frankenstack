@@ -5,6 +5,7 @@ Minimal Docker image built on `dunglas/frankenphp:1.11.1-php8.5.2-trixie` for ru
 **Features:**
 
 - Classic PHP request model (default) or Laravel Octane worker mode (opt-in)
+- Experimental Symfony support (classic and worker modes)
 - Runtime-configurable PHP, OPcache, and Xdebug settings via environment variables
 - Unified `REQUEST_TIMEOUT` controlling both PHP execution time and Caddy timeouts
 - `PHP_ENV` mode (`production`/`development`) with sensible defaults for each
@@ -34,7 +35,7 @@ Minimal Docker image built on `dunglas/frankenphp:1.11.1-php8.5.2-trixie` for ru
 - `CADDY_READ_TIMEOUT` (+5s) and `CADDY_WRITE_TIMEOUT` (+10s)
 - Note: PHP CLI ignores `max_execution_time`; this design constrains web requests without breaking long-running CLI commands.
 
-**Worker mode:** When `FRANKENPHP_MODE=worker` and `FRANKENPHP_WORKER` exists, the entrypoint configures FrankenPHP to run in worker mode. If the worker script is missing, it falls back to classic mode with a warning. File watching (`FRANKENPHP_WORKER_WATCH`) is enabled by default in development mode.
+**Worker mode:** When `FRANKENPHP_MODE=worker` and `FRANKENPHP_WORKER` exists, the entrypoint configures FrankenPHP to run in worker mode. If the worker script is missing, it falls back to classic mode with a warning. File watching (`FRANKENPHP_WORKER_WATCH`) uses multiline patterns (one per line, with `#` comments); enabled by default in development mode.
 
 ## Making Changes
 
@@ -87,6 +88,9 @@ docker run --rm -v $SSH_AUTH_SOCK:$SSH_AUTH_SOCK -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK
 
 # SSH (key secret)
 docker run --rm -v ~/.ssh/id_ed25519:/run/secrets/ssh_key:ro frankenstack ssh -T git@github.com
+
+# Worker watch patterns
+docker run --rm -e $'FRANKENPHP_WORKER_WATCH=/opt/project/**/*.php\n/opt/project/.env*' frankenstack bash -c 'echo "$FRANKENPHP_WORKER_WATCH" | cat -A'
 ```
 
 ---
