@@ -93,6 +93,17 @@ docker run --rm -v ~/.ssh/id_ed25519:/run/secrets/ssh_key:ro frankenstack ssh -T
 docker run --rm -e $'FRANKENPHP_WORKER_WATCH=/opt/project/**/*.php\n/opt/project/.env*' frankenstack bash -c 'echo "$FRANKENPHP_WORKER_WATCH" | cat -A'
 ```
 
+## Documentation
+
+User-facing documentation lives in `docs/src/content/docs/`:
+
+- **Guides:** Getting started, Laravel Octane, Symfony, private packages (Composer/NPM auth)
+- **Reference:** Exposed settings, classic vs worker mode, CLI commands, version support
+
+When modifying environment variables or adding new settings, consult the exposed settings reference:
+
+@docs/src/content/docs/reference/exposed-settings.md
+
 ---
 
 @AGENTS.local.md
