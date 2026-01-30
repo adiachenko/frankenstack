@@ -7,6 +7,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Frankenstack",
+      customCss: ["./src/styles/custom.css"],
       social: [
         {
           icon: "github",
@@ -16,6 +17,7 @@ export default defineConfig({
       ],
       sidebar: [
         { label: "Guides", autogenerate: { directory: "guides" } },
+        { label: "Concepts", autogenerate: { directory: "concepts" } },
         { label: "Reference", autogenerate: { directory: "reference" } },
       ],
     }),

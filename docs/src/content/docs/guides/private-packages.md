@@ -8,7 +8,7 @@ sidebar:
 
 ### Token Authentication
 
-For **GitHub** and **GitLab**, token-based auth via `COMPOSER_AUTH` is simpler than SSH. If your Git Hosting service doesn't support this solution (e.g. **Bitbucket**), see the next section about SSH.
+For **GitHub** and **GitLab**, using token-based authentication with `COMPOSER_AUTH` is typically easier than configuring SSH. If your Git hosting provider doesn’t support this method (such as **Bitbucket**), refer to the SSH section below.
 
 #### GitHub
 

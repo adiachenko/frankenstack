@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Fira+Code:wght@300..700&display=swap');
+
+/*
+ * Apply color variables to :root so they are available globally to Starlight.
+ * Using [data-theme] increases specificity to override defaults without !important.
+ */
+:root[data-theme] {
+	/* Playful Orange Accent (Replacing Purple) */
+	--sl-hue-orange: 25;
+	--sl-color-accent-low: hsl(var(--sl-hue-orange), 80%, 90%);
+	--sl-color-accent: hsl(var(--sl-hue-orange), 90%, 60%);
+	--sl-color-accent-high: hsl(var(--sl-hue-orange), 90%, 30%);
+
+	/* Rounded corners for a softer, more playful feel */
+	--sl-border-radius: 0.75rem;
+}
+
+/* Dark mode specific overrides for colors */
+[data-theme='dark'] {
+	--sl-color-accent-low: hsl(var(--sl-hue-orange), 80%, 15%);
+	--sl-color-accent: hsl(var(--sl-hue-orange), 90%, 60%);
+    /* Default variable override */
+	--sl-color-accent-high: hsl(var(--sl-hue-orange), 90%, 90%);
+}
+
+/*
+ * Explicitly target the site title in dark mode to ensure the brighter color applies.
+ * This bypasses any potential specificity issues with the variable alone.
+ */
+[data-theme='dark'] .site-title {
+    color: hsl(25, 90%, 90%) !important;
+}
+
+/*
+ * Target "On this page" (Table of Contents) links in dark mode.
+ * Starlight typically uses .right-sidebar or starlight-toc classes.
+ * We target the links and the header itself.
+ */
+[data-theme='dark'] .right-sidebar a,
+[data-theme='dark'] starlight-toc a,
+[data-theme='dark'] .on-this-page-heading {
+    color: hsl(25, 90%, 90%);
+}
+
+/* Ensure the active/hover state for TOC links also pops */
+[data-theme='dark'] .right-sidebar a:hover,
+[data-theme='dark'] starlight-toc a:hover,
+[data-theme='dark'] .right-sidebar a[aria-current='true'],
+[data-theme='dark'] starlight-toc a[aria-current='true'] {
+    color: hsl(25, 100%, 75%); /* Slightly richer orange for interaction */
+}
+
+
+/*
+ * Apply font variables and families to body to ensure they cascade correctly
+ * and override Starlight's default font settings.
+ */
+body {
+	/* Playful Fonts */
+	--sl-font-heading: 'Rubik', sans-serif;
+	--sl-font-body: 'Nunito', sans-serif;
+    --sl-font-mono: 'Fira Code', monospace;
+
+    font-family: var(--sl-font-body);
+}
+
+/* Playful Tweaks */
+
+/* Soften the sidebar */
+.sidebar-pane {
+	border-right: none;
+	background-color: var(--sl-color-gray-6);
+}
+
+/* Add a bit of bounce/roundness to buttons (if any) and cards */
+.card, .link-card {
+	border-radius: var(--sl-border-radius);
+	transition: transform 0.2s ease-in-out;
+}
+
+.card:hover, .link-card:hover {
+	transform: translateY(-3px);
+}
+
+/* Headings with a bit of character */
+h1, h2, h3, h4, h5, h6, .site-title, .large {
+	font-weight: 700;
+	letter-spacing: -0.01em;
+    font-family: var(--sl-font-heading);
+}
+
+/* Apply Fira Code to code blocks and inline code */
+code, kbd, samp, pre {
+    font-family: var(--sl-font-mono);
+}
+
+/* Customizing the hero section if present, or general content links */
+.content-panel {
+	border-radius: var(--sl-border-radius);
+}
+
+/* Navbar accent */
+.site-title {
+	font-weight: 800;
+	letter-spacing: -0.01em;
+	color: var(--sl-color-accent-high);
+}
