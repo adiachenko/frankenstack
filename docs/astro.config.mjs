@@ -8,6 +8,16 @@ export default defineConfig({
     starlight({
       title: "Frankenstack",
       customCss: ["./src/styles/custom.css"],
+      // Disable dark mode - light only
+      components: {
+        ThemeSelect: "./src/components/ThemeSelect.astro",
+      },
+      expressiveCode: {
+        themes: ["github-light"],
+        styleOverrides: {
+          borderRadius: "0.5rem",
+        },
+      },
       social: [
         {
           icon: "github",
