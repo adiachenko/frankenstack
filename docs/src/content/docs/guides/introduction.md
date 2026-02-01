@@ -31,3 +31,7 @@ Extensions (alphabetical):
   `mysqlnd`, `opcache`, `openssl`, `pcntl`, `pcov`, `pcre`, `pdo`, `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, `phar`,
   `posix`, `random`, `readline`, `redis`, `reflection`, `session`, `simplexml`, `sockets`, `sodium`, `spl`, `sqlite3`,
   `standard`, `tokenizer`, `uv`, `xdebug`, `xml`, `xmlreader`, `xmlwriter`, `zip`, `zlib`
+
+The following extensions are disabled by default, but can be enabled via environment variables (see [Opt-in PHP Extensions](https://frankenstack.vercel.app/reference/exposed-settings/#opt-in-php-extensions)):
+
+- `bz2`, `ffi`, `ftp`, `gd`, `imagick`, `intl`, `ldap`, `memcached`, `mongodb`, `sockets`, `uv`, `xdebug`

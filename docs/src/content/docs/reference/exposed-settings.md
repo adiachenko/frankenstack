@@ -24,8 +24,8 @@ Set `PHP_ENV` environment variable to `development` to switch to dev-friendly de
 
 | Environment Defaults (`PHP_ENV`)  | `production`            | `development`   |
 | --------------------------------- | ----------------------- | --------------- |
-| `PHP_DISPLAY_ERRORS`              | `Off`                   | `On`            |
-| `PHP_DISPLAY_STARTUP_ERRORS`      | `Off`                   | `On`            |
+| `PHP_DISPLAY_ERRORS`              | `off`                   | `on`            |
+| `PHP_DISPLAY_STARTUP_ERRORS`      | `off`                   | `on`            |
 | `PHP_ERROR_REPORTING`             | `E_ALL & ~E_DEPRECATED` | `E_ALL`         |
 | `PHP_XDEBUG_MODE`                 | `off`                   | `debug,develop` |
 | `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0`                     | `1`             |
@@ -60,6 +60,29 @@ Other PHP settings:
 | `PHP_XDEBUG_CLIENT_PORT`              | `9003`                             |
 
 > Xdebug defaults are different in `worker` mode because it can cause workers to hang during boot unless explicitly triggered. For Herd-like "always on" debugging, use classic mode.
+
+### Opt-in PHP Extensions
+
+Some heavy or specialized PHP extensions are disabled by default to reduce memory footprint. To enable an opt-in extension, set its environment variable to `on` (for example, `PHP_EXT_INTL=on` enables the intl extension).
+
+> `PHP_EXT_ALL=on` enables all opt-in extensions. Individial overrides below can disable specific extensions even if `PHP_EXT_ALL=on`.
+
+| Variable            | Default |
+| ------------------- | ------- |
+| `PHP_EXT_BZ2`       | off     |
+| `PHP_EXT_FFI`       | off     |
+| `PHP_EXT_FTP`       | off     |
+| `PHP_EXT_GD`        | off     |
+| `PHP_EXT_IMAGICK`   | off     |
+| `PHP_EXT_INTL`      | off     |
+| `PHP_EXT_LDAP`      | off     |
+| `PHP_EXT_MEMCACHED` | off     |
+| `PHP_EXT_MONGODB`   | off     |
+| `PHP_EXT_SOCKETS`   | off     |
+| `PHP_EXT_UV`        | off     |
+| `PHP_EXT_XDEBUG`    | off     |
+
+Boolean values accept multiple formats (case-insensitive): `1`, `on`, `true`, `yes` to enable; `0`, `off`, `false`, `no` to disable. This matches PHP's native ini parsing behavior.
 
 ### SSH Settings
 

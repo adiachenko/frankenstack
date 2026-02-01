@@ -59,6 +59,25 @@ Minimal Docker image built on `dunglas/frankenphp:1.11.1-php8.5.2-trixie` for ru
   - Fresh container: `docker compose run --rm -e PHP_XDEBUG_MODE=debug -e XDEBUG_TRIGGER=1 app php artisan ...`
 - **Worker mode:** `PHP_XDEBUG_START_WITH_REQUEST=yes` hangs workers (Xdebug blocks waiting for IDE). Always use `trigger` mode with workers. For "always on" debugging, use classic mode.
 
+### PHP extensions
+
+Opt-in extensions are controlled via `PHP_EXT_<NAME>` environment variables. At runtime, `configure_php_extensions()` in `entrypoint.sh` generates `$PHP_INI_DIR/conf.d/40-extensions.ini` based on these variables.
+
+- **Always-on:** `bcmath`, `exif`, `gmp`, `igbinary`, `lz4`, `opcache`, `pcntl`, `pcov`, `pdo_mysql`, `pdo_pgsql`, `redis`, `zip` (no env var control)
+- **Opt-in:** `bz2`, `ffi`, `ftp`, `gd`, `imagick`, `intl`, `ldap`, `memcached`, `mongodb`, `sockets`, `uv`, `xdebug` (heavy or specialized)
+- **Bulk enable:** `PHP_EXT_ALL=1` enables all opt-in extensions; individual `PHP_EXT_<NAME>=0` can override
+- **Boolean parsing:** Accepts `1`/`on`/`true`/`yes` (enable) and `0`/`off`/`false`/`no` (disable), case-insensitive
+
+When adding new **always-on** extensions:
+1. Install via `install-php-extensions` in Dockerfile (ini file auto-generated)
+
+When adding new **opt-in** extensions:
+1. Install via `install-php-extensions` in Dockerfile
+2. Add `rm -f` for its auto-generated ini file after install
+3. Add `PHP_EXT_<NAME>=` to the `ENV` block
+4. Add extension name to the `opt_in` list in `configure_php_extensions()`
+5. Update docs (`exposed-settings.md`)
+
 ### SSH
 
 - Opt-in: requires `SSH_AUTH_SOCK` socket or `/run/secrets/ssh_key`
@@ -91,6 +110,21 @@ docker run --rm -v ~/.ssh/id_ed25519:/run/secrets/ssh_key:ro frankenstack ssh -T
 
 # Worker watch patterns
 docker run --rm -e $'FRANKENPHP_WORKER_WATCH=/opt/project/**/*.php\n/opt/project/.env*' frankenstack bash -c 'echo "$FRANKENPHP_WORKER_WATCH" | cat -A'
+
+# PHP extensions (always-on)
+docker run --rm frankenstack php -r "var_dump(extension_loaded('redis'), extension_loaded('bcmath'), extension_loaded('pdo_mysql'));"
+
+# PHP extensions (opt-in disabled by default)
+docker run --rm frankenstack php -m | grep -E '^(gd|intl|mongodb)$' && echo "FAIL" || echo "PASS: opt-in extensions disabled"
+
+# Enable specific opt-in extension
+docker run --rm -e PHP_EXT_GD=1 frankenstack php -r "var_dump(extension_loaded('gd'));"
+
+# Enable all opt-in extensions
+docker run --rm -e PHP_EXT_ALL=1 frankenstack php -m | grep -c -E '^(gd|intl|xdebug|mongodb)$'
+
+# Enable all except specific ones
+docker run --rm -e PHP_EXT_ALL=1 -e PHP_EXT_XDEBUG=0 frankenstack php -r "var_dump(extension_loaded('gd'), extension_loaded('xdebug'));"
 ```
 
 ## Documentation
