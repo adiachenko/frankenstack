@@ -1,0 +1,788 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap');
+
+/* ==========================================================================
+   Force Light Mode
+   ========================================================================== */
+:root {
+  color-scheme: light;
+}
+
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+  /* Warm, inviting color palette */
+  --sl-color-accent-low: #fef3e2;
+  --sl-color-accent: #f59e0b;
+  --sl-color-accent-high: #b45309;
+
+  /* Light backgrounds */
+  --sl-color-bg: #fffbf5;
+  --sl-color-bg-nav: #fff8ee;
+  --sl-color-bg-sidebar: #fff8ee;
+  --sl-color-bg-inline-code: #fef6e8;
+
+  /* Text colors */
+  --sl-color-text: #3d3929;
+  --sl-color-text-accent: #b45309;
+
+  /* Grays adapted for light mode */
+  --sl-color-gray-1: #f8f4ed;
+  --sl-color-gray-2: #ede8df;
+  --sl-color-gray-3: #d4cfc4;
+  --sl-color-gray-4: #9c9686;
+  --sl-color-gray-5: #6b665a;
+  --sl-color-gray-6: #4a4639;
+
+  /* Borders */
+  --sl-color-hairline-light: #e8e2d6;
+  --sl-color-hairline: #d4cfc4;
+
+  /* White stays white */
+  --sl-color-white: #fffbf5;
+  --sl-color-black: #2d2a24;
+
+  /* Typography */
+  --sl-font: 'Open Sans', system-ui, sans-serif;
+  --sl-font-system-mono: 'Fira Code', ui-monospace, monospace;
+
+  /* Layout */
+  --sl-nav-height: 4rem;
+  --sl-sidebar-width: 18rem;
+  --sl-content-width: 50rem;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+body {
+  font-family: var(--sl-font);
+  background: var(--sl-color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+  font-family: 'Merriweather Sans', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--sl-color-black);
+}
+
+/* Page title */
+h1,
+.sl-markdown-content h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Section headings */
+h2,
+.sl-markdown-content h2 {
+  font-size: 1.75rem;
+  margin-top: 2.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--sl-color-accent-low);
+}
+
+h3,
+.sl-markdown-content h3 {
+  font-size: 1.35rem;
+  color: var(--sl-color-gray-6);
+}
+
+/* ==========================================================================
+   Navigation & Sidebar
+   ========================================================================== */
+.site-title {
+  font-family: 'Merriweather Sans', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--sl-color-accent-high) !important;
+  letter-spacing: -0.02em;
+}
+
+nav.sidebar {
+  background: var(--sl-color-bg-sidebar);
+}
+
+/* Sidebar border - match header border */
+.sidebar-pane {
+  border-right-color: var(--sl-color-hairline-light) !important;
+}
+
+/* Sidebar group labels */
+.sidebar-content .top-level > li > details > summary,
+.sidebar-content .top-level > li > details summary span,
+.sidebar-content summary {
+  color: var(--sl-color-gray-6) !important;
+  font-family: 'Merriweather Sans', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Sidebar links - ensure readable */
+.sidebar-content a {
+  border-radius: 0.375rem;
+  transition: all 0.15s ease;
+  color: var(--sl-color-gray-5) !important;
+}
+
+.sidebar-content a:hover {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high) !important;
+}
+
+.sidebar-content a[aria-current="page"] {
+  background: linear-gradient(135deg, #fef3e2 0%, #fde68a 100%);
+  color: var(--sl-color-accent-high) !important;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Inline Code
+   ========================================================================== */
+:not(pre) > code {
+  font-family: 'Fira Code', ui-monospace, monospace;
+  font-size: 0.875em;
+  font-weight: 500;
+  padding: 0.2em 0.45em;
+  border-radius: 0.375rem;
+  background: linear-gradient(135deg, #fef6e8 0%, #fef3e2 100%);
+  border: 1px solid #f3e5c8;
+  color: #92400e;
+  box-shadow: 0 1px 2px rgba(180, 83, 9, 0.05);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Code Blocks (Expressive Code overrides)
+   ========================================================================== */
+.expressive-code {
+  margin: 1.5rem 0;
+}
+
+.expressive-code figure {
+  position: relative;
+}
+
+/* Add decorative dots before code blocks (non-terminal only) */
+.expressive-code figure:not(.is-terminal)::before {
+  content: "";
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  width: 12px;
+  height: 12px;
+  background: #fca5a5;
+  border-radius: 50%;
+  box-shadow:
+    20px 0 0 #fcd34d,
+    40px 0 0 #86efac;
+  z-index: 10;
+}
+
+.expressive-code .frame {
+  border-radius: 0.75rem !important;
+  box-shadow:
+    0 10px 25px -5px rgba(180, 83, 9, 0.1),
+    0 8px 10px -6px rgba(180, 83, 9, 0.08),
+    0 0 0 1px rgba(180, 83, 9, 0.1) !important;
+  overflow: hidden;
+  background: #fffdf9 !important;
+}
+
+/* Code block header/title bar */
+.expressive-code .header {
+  background: linear-gradient(135deg, #fef6e8 0%, #fef3e2 100%) !important;
+  border-bottom: 1px solid #f3e5c8 !important;
+  padding: 0.625rem 1rem 0.625rem 4.5rem !important;
+}
+
+/* Terminal blocks - style the header with decorative dots */
+.expressive-code .frame.is-terminal .header {
+  background: linear-gradient(135deg, #fef6e8 0%, #fef3e2 100%) !important;
+  border: none !important;
+  border-bottom: 1px solid #f3e5c8 !important;
+  min-height: 2.5rem !important;
+  padding: 0.625rem 1rem !important;
+}
+
+/* Terminal header dots - match our color scheme */
+.expressive-code .frame.is-terminal .header::before {
+  background: none !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  background-color: #fca5a5 !important;
+  border-radius: 50% !important;
+  opacity: 1 !important;
+  left: 1rem !important;
+  box-shadow:
+    20px 0 0 #fcd34d,
+    40px 0 0 #86efac !important;
+}
+
+/* Terminal header bottom border - hide EC's default */
+.expressive-code .frame.is-terminal .header::after {
+  display: none !important;
+}
+
+/* Terminal pre - no extra top padding needed since header is visible */
+.expressive-code .frame.is-terminal pre {
+  padding-top: 1.25rem !important;
+  border-top: none !important;
+}
+
+.expressive-code .title {
+  font-family: 'Fira Code', ui-monospace, monospace !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #92400e !important;
+  letter-spacing: 0.01em;
+}
+
+/* The actual code area */
+.expressive-code pre {
+  background: linear-gradient(180deg, #fffdf9 0%, #fffbf5 100%) !important;
+  padding: 1.25rem !important;
+  padding-top: 2.25rem !important;
+  font-family: 'Fira Code', ui-monospace, monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.7 !important;
+  border-top: 1px solid #f3e5c8 !important;
+}
+
+/* When there's a header, adjust the top padding */
+.expressive-code .has-title pre,
+.expressive-code .header + pre {
+  padding-top: 1.25rem !important;
+}
+
+.expressive-code code {
+  font-family: 'Fira Code', ui-monospace, monospace !important;
+}
+
+/* Line numbers styling */
+.expressive-code .line-numbers {
+  color: #d4cfc4 !important;
+  border-right: 1px solid #f3e5c8 !important;
+  padding-right: 1rem !important;
+  margin-right: 1rem !important;
+}
+
+/* Copy button */
+.expressive-code .copy button {
+  background: linear-gradient(135deg, #fef6e8 0%, #fef3e2 100%) !important;
+  border: 1px solid #f3e5c8 !important;
+  border-radius: 0.5rem !important;
+  color: #92400e !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(180, 83, 9, 0.05) !important;
+}
+
+.expressive-code .copy button:hover {
+  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%) !important;
+  border-color: #f59e0b !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(180, 83, 9, 0.1) !important;
+}
+
+/* Copy button for terminal blocks - position in header row */
+.expressive-code .frame.is-terminal .copy {
+  top: 0.5rem !important;
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+.sl-markdown-content table {
+  width: 100% !important;
+  min-width: 100%;
+  display: table;
+  table-layout: fixed;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--sl-color-hairline);
+  box-shadow: 0 1px 3px rgba(180, 83, 9, 0.05);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sl-markdown-content th,
+.sl-markdown-content td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  word-wrap: break-word;
+}
+
+.sl-markdown-content th {
+  background: linear-gradient(135deg, #fef6e8 0%, #fef3e2 100%);
+  font-family: 'Merriweather Sans', system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--sl-color-accent-high);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.sl-markdown-content td {
+  background: #fffdf9;
+}
+
+.sl-markdown-content tr:hover td {
+  background: #fffbf5;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+.sl-markdown-content a:not([class]) {
+  color: var(--sl-color-accent-high);
+  text-decoration: underline;
+  text-decoration-color: #fcd34d;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 2px;
+  transition: all 0.15s ease;
+}
+
+.sl-markdown-content a:not([class]):hover {
+  color: #92400e;
+  text-decoration-color: #f59e0b;
+  background: var(--sl-color-accent-low);
+  border-radius: 0.25rem;
+  padding: 0 0.125rem;
+  margin: 0 -0.125rem;
+}
+
+/* ==========================================================================
+   Lists
+   ========================================================================== */
+.sl-markdown-content ul {
+  list-style: none;
+  padding-left: 1.5rem;
+}
+
+.sl-markdown-content ul > li::before {
+  content: "▸";
+  color: var(--sl-color-accent);
+  font-weight: bold;
+  display: inline-block;
+  width: 1em;
+  margin-left: -1.5rem;
+  margin-right: 0.5rem;
+}
+
+/* ==========================================================================
+   Blockquotes / Asides
+   ========================================================================== */
+blockquote,
+.starlight-aside {
+  border-left: 4px solid var(--sl-color-accent);
+  background: linear-gradient(135deg, #fef6e8 0%, #fef3e2 100%);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+blockquote p {
+  color: var(--sl-color-gray-6);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   On This Page (TOC)
+   ========================================================================== */
+.right-sidebar-container {
+  font-size: 0.875rem;
+}
+
+.right-sidebar-panel h2,
+starlight-toc h2 {
+  font-family: 'Merriweather Sans', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sl-color-gray-6) !important;
+}
+
+.right-sidebar a,
+starlight-toc a {
+  color: var(--sl-color-gray-5) !important;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+  padding: 0.25rem 0.5rem;
+  margin-left: -0.5rem;
+}
+
+.right-sidebar a:hover,
+starlight-toc a:hover,
+.right-sidebar a[aria-current="true"],
+starlight-toc a[aria-current="true"] {
+  color: var(--sl-color-accent-high) !important;
+  background: var(--sl-color-accent-low);
+}
+
+/* ==========================================================================
+   Search
+   ========================================================================== */
+site-search button {
+  background: var(--sl-color-white) !important;
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: 0.5rem !important;
+}
+
+site-search button span,
+site-search button .sl-flex {
+  color: var(--sl-color-gray-5) !important;
+}
+
+/* Header search icon - ensure visibility */
+site-search button svg {
+  color: var(--sl-color-gray-5) !important;
+  stroke: var(--sl-color-gray-5) !important;
+  opacity: 1 !important;
+}
+
+site-search button:hover {
+  border-color: var(--sl-color-accent) !important;
+}
+
+site-search button:hover span {
+  color: var(--sl-color-gray-6) !important;
+}
+
+/* Header search icon on hover - keep visible */
+site-search button:hover svg {
+  color: var(--sl-color-gray-6) !important;
+  stroke: var(--sl-color-gray-6) !important;
+}
+
+/* Keyboard shortcut badge (⌘K) - subtle styling */
+site-search button kbd {
+  background: var(--sl-color-gray-1) !important;
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: 0.25rem !important;
+  color: var(--sl-color-gray-4) !important;
+  font-family: inherit !important;
+  font-size: 0.75rem !important;
+  padding: 0.125rem 0.375rem !important;
+  box-shadow: none !important;
+}
+
+/* Search Modal - Override Starlight's dark search dialog */
+dialog,
+dialog[open],
+[data-dialog],
+starlight-search > dialog {
+  --sl-color-bg: #fffbf5;
+  --sl-color-bg-nav: #fffbf5;
+  --sl-color-text: #3d3929;
+  --sl-color-gray-1: #f8f4ed;
+  --sl-color-gray-2: #ede8df;
+  --sl-color-gray-3: #d4cfc4;
+  --sl-color-gray-5: #6b665a;
+  --sl-color-gray-6: #4a4639;
+  --sl-color-white: #fffbf5;
+  --sl-color-black: #2d2a24;
+  /* Pagefind UI custom properties - fix icon visibility */
+  --pagefind-ui-text: #4a4639;
+  --pagefind-ui-primary: #3d3929;
+  --pagefind-ui-background: #fffbf5;
+  --pagefind-ui-border: #d4cfc4;
+  --pagefind-ui-tag: #6b665a;
+  background: transparent !important;
+  border: none !important;
+  color: #3d3929 !important;
+}
+
+/* Dialog inner wrapper - single clean border */
+dialog > div,
+dialog .dialog-frame,
+starlight-search dialog > div {
+  background: #fffbf5 !important;
+  border: 1px solid #d4cfc4 !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 25px 50px -12px rgba(180, 83, 9, 0.15) !important;
+  overflow: hidden;
+}
+
+/* Pagefind UI - Override custom properties directly on the component */
+.pagefind-ui,
+dialog .pagefind-ui,
+[data-pagefind-ui] {
+  --pagefind-ui-text: #4a4639 !important;
+  --pagefind-ui-primary: #3d3929 !important;
+  --pagefind-ui-background: #fffbf5 !important;
+  --pagefind-ui-border: #d4cfc4 !important;
+  --pagefind-ui-tag: #6b665a !important;
+}
+
+/* Pagefind search icon - increase visibility */
+.pagefind-ui__form::before,
+dialog .pagefind-ui__form::before {
+  background-color: #4a4639 !important;
+  opacity: 1 !important;
+}
+
+/* Search input inside modal */
+dialog input,
+dialog input[type="search"],
+dialog input[type="text"] {
+  background: #fffdf9 !important;
+  border: 2px solid #f59e0b !important;
+  border-radius: 0.5rem !important;
+  color: #3d3929 !important;
+  font-family: 'Open Sans', system-ui, sans-serif !important;
+}
+
+dialog input::placeholder,
+dialog [type="text"]::placeholder,
+dialog [type="search"]::placeholder,
+[data-dialog] input::placeholder,
+starlight-search input::placeholder {
+  color: #4a4639 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #4a4639 !important;
+}
+
+/* Search icon in modal - comprehensive targeting */
+dialog svg,
+dialog .search-icon,
+dialog [aria-hidden="true"] svg,
+dialog form svg,
+dialog label svg,
+starlight-search svg,
+starlight-search dialog svg,
+[data-pagefind-ui] svg,
+.pagefind-ui svg,
+.pagefind-ui__search-input svg,
+dialog .pagefind-ui svg {
+  color: #4a4639 !important;
+  fill: #4a4639 !important;
+  stroke: #4a4639 !important;
+  opacity: 1 !important;
+}
+
+/* Search results list */
+dialog ul,
+dialog .search-results {
+  background: #fffbf5 !important;
+}
+
+/* Search result containers - Pagefind UI specific */
+.pagefind-ui__result {
+  background: #fffdf9 !important;
+  color: #4a4639 !important;
+  border: 1px solid #f3e5c8 !important;
+  border-radius: 0.5rem !important;
+  margin: 0.5rem 0 !important;
+  overflow: hidden;
+}
+
+.pagefind-ui__result-inner {
+  background: transparent !important;
+}
+
+/* Nested result items (sub-sections within a result group) */
+.pagefind-ui__result-nested {
+  background: #fffdf9 !important;
+  padding: 0.5rem 1rem 0.5rem 3rem !important;
+}
+
+/* Hover state for nested items - subtle highlight, no rounded corners */
+.pagefind-ui__result-nested:hover {
+  background: #fef6e8 !important;
+}
+
+/* Main result card hover - border highlight */
+.pagefind-ui__result:hover {
+  border-color: #f59e0b !important;
+}
+
+/* Reset parent border when hovering nested children (must come after :hover rule) */
+.pagefind-ui__result:hover:has(.pagefind-ui__result-nested:hover) {
+  border-color: #f3e5c8 !important;
+  background: #fffdf9 !important;
+}
+
+/* Result links/titles - Pagefind specific */
+.pagefind-ui__result-link {
+  color: #b45309 !important;
+  font-family: 'Merriweather Sans', system-ui, sans-serif !important;
+  background: transparent !important;
+}
+
+.pagefind-ui__result-title {
+  color: #b45309 !important;
+  background: transparent !important;
+}
+
+/* Result excerpt text */
+.pagefind-ui__result-excerpt {
+  color: #4a4639 !important;
+  background: transparent !important;
+}
+
+/* Generic dialog text fallback */
+dialog p,
+dialog span {
+  color: #4a4639 !important;
+}
+
+/* Highlighted search match */
+dialog mark {
+  background: #fde68a !important;
+  color: #92400e !important;
+  border-radius: 0.125rem;
+  padding: 0 0.125rem;
+}
+
+/* Cancel/close button - minimal style, just the X */
+dialog button.pagefind-ui__search-clear {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #6b665a !important;
+}
+
+dialog button.pagefind-ui__search-clear:hover,
+dialog button.pagefind-ui__search-clear:focus,
+dialog button.pagefind-ui__search-clear:focus-visible,
+dialog button.pagefind-ui__search-clear:active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #b45309 !important;
+}
+
+/* Result count text */
+dialog .search-result-count,
+dialog [aria-live] {
+  color: #6b665a !important;
+}
+
+/* ==========================================================================
+   Pagination Cards
+   ========================================================================== */
+.pagination-links {
+  gap: 1rem;
+}
+
+.pagination-links a {
+  background: linear-gradient(135deg, #fffdf9 0%, #fffbf5 100%) !important;
+  border: 1px solid #f3e5c8 !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem 1.25rem !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(180, 83, 9, 0.05) !important;
+}
+
+.pagination-links a:hover {
+  border-color: #f59e0b !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px rgba(180, 83, 9, 0.1) !important;
+}
+
+/* Pagination link text - target all spans inside */
+.pagination-links a span {
+  display: block;
+}
+
+/* "Previous" / "Next" label - first span */
+.pagination-links a > span:first-of-type {
+  color: var(--sl-color-gray-5) !important;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Page title in pagination - nested span */
+.pagination-links a > span > span,
+.pagination-links a > span:last-of-type:not(:first-of-type) {
+  color: var(--sl-color-accent-high) !important;
+  font-family: 'Merriweather Sans', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Arrow icons */
+.pagination-links svg {
+  color: var(--sl-color-gray-4) !important;
+}
+
+/* ==========================================================================
+   Header / Navbar
+   ========================================================================== */
+header.header {
+  background: var(--sl-color-bg-nav) !important;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+/* Social links in header */
+.social-icons a {
+  color: var(--sl-color-gray-5) !important;
+  transition: color 0.15s ease;
+}
+
+.social-icons a:hover {
+  color: var(--sl-color-accent-high) !important;
+}
+
+/* Remove separator line after social icons (artifact from removed theme switcher) */
+.social-icons::after,
+.social-icons::before,
+header .right-group::after,
+header .right-group::before,
+header .right-group > *::after,
+header .right-group > *::before,
+.right-sidebar-container::before,
+[data-theme] header .sl-flex::after {
+  display: none !important;
+  border: none !important;
+  content: none !important;
+}
+
+/* ==========================================================================
+   Misc UI Polish
+   ========================================================================== */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection highlight */
+::selection {
+  background: #fde68a;
+  color: #92400e;
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Subtle page transitions */
+.main-frame {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
+}
