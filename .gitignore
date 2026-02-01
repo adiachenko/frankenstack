@@ -1,5 +1,13 @@
+# MacOS
+.DS_Store
+
 # Agents
-/.claude/plans/
-/.claude/settings.local.json
+.claude/plans/
+.claude/settings.local.json
 AGENTS.local.md
 CLAUDE.local.md
+
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
