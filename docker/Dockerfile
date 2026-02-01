@@ -1,15 +1,6 @@
 # check=skip=SecretsUsedInArgOrEnv
 FROM dunglas/frankenphp:1.11.1-php8.5.2-trixie
 
-LABEL org.opencontainers.image.source=https://github.com/adiachenko/frankenstack
-
-# Node.js version build args (used_below)
-ARG NODE_22_VERSION=22.22.0
-ARG NODE_24_VERSION=24.13.0
-
-# MySQL version build arg (used_below)
-ARG MYSQL_VERSION=8.4.8
-
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -55,7 +46,8 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 # Remove default opcache config (we provide our own)
 RUN rm -f "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini"
 
-# Pre-install latest 2 LTS versions of Node.js
+# Install Node.js 22 LTS
+ARG NODE_22_VERSION=22.22.0
 RUN set -eux; \
     # Map Docker architecture to Node.js architecture
     case "$(dpkg --print-architecture)" in \
@@ -63,11 +55,20 @@ RUN set -eux; \
         arm64) ARCH='arm64' ;; \
         *) echo "Unsupported architecture"; exit 1 ;; \
     esac; \
-    # Install Node 22
     mkdir -p /opt/node/22; \
     curl -fsSL "https://nodejs.org/dist/v${NODE_22_VERSION}/node-v${NODE_22_VERSION}-linux-${ARCH}.tar.xz" \
         | tar -xJ --strip-components=1 -C /opt/node/22; \
-    # Install Node 24
+    rm -rf /tmp/node-compile-cache
+
+# Install Node.js 24 LTS (default)
+ARG NODE_24_VERSION=24.13.0
+RUN set -eux; \
+    # Map Docker architecture to Node.js architecture
+    case "$(dpkg --print-architecture)" in \
+        amd64) ARCH='x64' ;; \
+        arm64) ARCH='arm64' ;; \
+        *) echo "Unsupported architecture"; exit 1 ;; \
+    esac; \
     mkdir -p /opt/node/24; \
     curl -fsSL "https://nodejs.org/dist/v${NODE_24_VERSION}/node-v${NODE_24_VERSION}-linux-${ARCH}.tar.xz" \
         | tar -xJ --strip-components=1 -C /opt/node/24; \
@@ -76,11 +77,13 @@ RUN set -eux; \
     ln -s /opt/node/24/bin/npm /usr/local/bin/npm; \
     ln -s /opt/node/24/bin/npx /usr/local/bin/npx; \
     ln -s /opt/node/24/bin/corepack /usr/local/bin/corepack; \
+    rm -rf /tmp/node-compile-cache; \
     # Verify installation
     node --version; \
     npm --version
 
 # Install MySQL 8.4 client (generic glibc2.28 binaries for both amd64 and arm64)
+ARG MYSQL_VERSION=8.4.8
 RUN set -eux; \
     # Install runtime dependency for MySQL client
     apt-get update && apt-get install -y --no-install-recommends libncurses6 \
@@ -151,6 +154,8 @@ ENV NODE_VERSION=24 \
     SSH_AUTH_SOCK="/tmp/ssh-agent.sock"
 
 WORKDIR /opt/project
+
+LABEL org.opencontainers.image.source=https://github.com/adiachenko/frankenstack
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["--config", "/etc/frankenphp/Caddyfile"]
