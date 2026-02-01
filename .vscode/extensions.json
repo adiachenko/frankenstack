@@ -3,6 +3,5 @@
     "esbenp.prettier-vscode",
     "astro-build.astro-vscode",
     "unifiedjs.vscode-mdx"
-  ],
-  "unwantedRecommendations": []
+  ]
 }
