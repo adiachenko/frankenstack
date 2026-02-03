@@ -23,3 +23,7 @@ docker buildx build \
 # Clear dangling build cache
 docker buildx prune -f
 ```
+
+## GitHub Actions tagging
+
+The `Build Image` workflow publishes tags for the version branches (`8.4`, `8.5`) and also publishes `latest` from the branch defined by `LATEST_PHP_BRANCH` in `.github/workflows/build-image.yml`. When a new PHP major becomes the latest, update that value to the new branch name.
