@@ -13,20 +13,41 @@ on:
 
 env:
   LATEST_PHP_BRANCH: "8.5"
+  CACHE_SCOPE_PREFIX: "frankenstack"
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  build:
+  meta:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.vars.outputs.tag }}
+      is_latest: ${{ steps.vars.outputs.is_latest }}
+    steps:
+      - name: Resolve image tags
+        id: vars
+        run: |
+          tag="${{ github.event.inputs.tag }}"
+          if [ -z "$tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          fi
+
+          if [ "$tag" = "${LATEST_PHP_BRANCH}" ]; then
+            echo "is_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_latest=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+  build_amd64:
+    needs: meta
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
@@ -38,29 +59,97 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Resolve image tags
-        id: vars
+      - name: Resolve arch tags
+        id: tags
         run: |
-          tag="${{ github.event.inputs.tag }}"
-          if [ -z "$tag" ]; then
-            tag="${GITHUB_REF_NAME}"
+          tag="${{ needs.meta.outputs.tag }}"
+          tags="ghcr.io/${{ github.repository }}:${tag}-amd64"
+          if [ "${{ needs.meta.outputs.is_latest }}" = "true" ]; then
+            tags="${tags}"$'\n'"ghcr.io/${{ github.repository }}:latest-amd64"
           fi
 
-          tags="ghcr.io/${{ github.repository }}:${tag}"
-          if [ "$tag" = "${LATEST_PHP_BRANCH}" ]; then
-            tags="${tags}"$'\n'"ghcr.io/${{ github.repository }}:latest"
-          fi
-
-          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
           printf "tags<<EOF\n%s\nEOF\n" "$tags" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: ./docker
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           pull: true
           push: true
-          tags: ${{ steps.vars.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-amd64
+          cache-to: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-amd64,mode=max
+
+  build_arm64:
+    needs: meta
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve arch tags
+        id: tags
+        run: |
+          tag="${{ needs.meta.outputs.tag }}"
+          tags="ghcr.io/${{ github.repository }}:${tag}-arm64"
+          if [ "${{ needs.meta.outputs.is_latest }}" = "true" ]; then
+            tags="${tags}"$'\n'"ghcr.io/${{ github.repository }}:latest-arm64"
+          fi
+
+          printf "tags<<EOF\n%s\nEOF\n" "$tags" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker
+          platforms: linux/arm64
+          pull: true
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-arm64
+          cache-to: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-arm64,mode=max
+
+  manifest:
+    needs:
+      - meta
+      - build_amd64
+      - build_arm64
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create manifests
+        run: |
+          repo="ghcr.io/${{ github.repository }}"
+          tag="${{ needs.meta.outputs.tag }}"
+
+          docker buildx imagetools create \
+            -t "${repo}:${tag}" \
+            "${repo}:${tag}-amd64" \
+            "${repo}:${tag}-arm64"
+
+          if [ "${{ needs.meta.outputs.is_latest }}" = "true" ]; then
+            docker buildx imagetools create \
+              -t "${repo}:latest" \
+              "${repo}:latest-amd64" \
+              "${repo}:latest-arm64"
+          fi
