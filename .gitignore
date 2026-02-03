@@ -2,8 +2,8 @@
 .DS_Store
 
 # Agents
-.claude/plans/
-.claude/settings.local.json
+.claude/
+.codex/
 AGENTS.local.md
 CLAUDE.local.md
 
