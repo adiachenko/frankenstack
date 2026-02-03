@@ -3,6 +3,7 @@
 [![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)](https://github.com/adiachenko/frankenstack/pkgs/container/frankenstack/666227932?tag=8.5)
 [![PHP 8.4](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)](https://github.com/adiachenko/frankenstack/pkgs/container/frankenstack/666245442?tag=8.4)
 [![GHCR](https://img.shields.io/badge/images-ghcr.io-blue?logo=github)](https://github.com/adiachenko/frankenstack/pkgs/container/frankenstack)
+[![Build Image](https://github.com/adiachenko/frankenstack/actions/workflows/build-image.yml/badge.svg)](https://github.com/adiachenko/frankenstack/actions/workflows/build-image.yml)
 
 Running Laravel on **FrankenPHP** is fast — but the setup can get fiddly.
 

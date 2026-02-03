@@ -48,7 +48,7 @@ jobs:
 
           tags="ghcr.io/${{ github.repository }}:${tag}"
           if [ "$tag" = "${LATEST_PHP_BRANCH}" ]; then
-            tags="${tags}\nghcr.io/${{ github.repository }}:latest"
+            tags="${tags}"$'\n'"ghcr.io/${{ github.repository }}:latest"
           fi
 
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
