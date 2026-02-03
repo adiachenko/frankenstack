@@ -45,6 +45,8 @@ jobs:
   build_amd64:
     needs: meta
     runs-on: ubuntu-24.04
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,31 +61,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Resolve arch tags
-        id: tags
-        run: |
-          tag="${{ needs.meta.outputs.tag }}"
-          tags="ghcr.io/${{ github.repository }}:${tag}-amd64"
-          if [ "${{ needs.meta.outputs.is_latest }}" = "true" ]; then
-            tags="${tags}"$'\n'"ghcr.io/${{ github.repository }}:latest-amd64"
-          fi
-
-          printf "tags<<EOF\n%s\nEOF\n" "$tags" >> "$GITHUB_OUTPUT"
-
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ./docker
           platforms: linux/amd64
           pull: true
-          push: true
-          tags: ${{ steps.tags.outputs.tags }}
+          outputs: type=image,name=ghcr.io/${{ github.repository }},push-by-digest=true,push=true
           cache-from: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-amd64
           cache-to: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-amd64,mode=max
 
   build_arm64:
     needs: meta
     runs-on: ubuntu-24.04-arm
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,25 +91,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Resolve arch tags
-        id: tags
-        run: |
-          tag="${{ needs.meta.outputs.tag }}"
-          tags="ghcr.io/${{ github.repository }}:${tag}-arm64"
-          if [ "${{ needs.meta.outputs.is_latest }}" = "true" ]; then
-            tags="${tags}"$'\n'"ghcr.io/${{ github.repository }}:latest-arm64"
-          fi
-
-          printf "tags<<EOF\n%s\nEOF\n" "$tags" >> "$GITHUB_OUTPUT"
-
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ./docker
           platforms: linux/arm64
           pull: true
-          push: true
-          tags: ${{ steps.tags.outputs.tags }}
+          outputs: type=image,name=ghcr.io/${{ github.repository }},push-by-digest=true,push=true
           cache-from: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-arm64
           cache-to: type=gha,scope=${{ env.CACHE_SCOPE_PREFIX }}-${{ github.ref_name }}-arm64,mode=max
 
@@ -144,12 +126,12 @@ jobs:
 
           docker buildx imagetools create \
             -t "${repo}:${tag}" \
-            "${repo}:${tag}-amd64" \
-            "${repo}:${tag}-arm64"
+            "${repo}@${{ needs.build_amd64.outputs.digest }}" \
+            "${repo}@${{ needs.build_arm64.outputs.digest }}"
 
           if [ "${{ needs.meta.outputs.is_latest }}" = "true" ]; then
             docker buildx imagetools create \
               -t "${repo}:latest" \
-              "${repo}:latest-amd64" \
-              "${repo}:latest-arm64"
+              "${repo}@${{ needs.build_amd64.outputs.digest }}" \
+              "${repo}@${{ needs.build_arm64.outputs.digest }}"
           fi
