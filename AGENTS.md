@@ -138,6 +138,10 @@ When modifying environment variables or adding new settings, consult the exposed
 
 @docs/src/content/docs/reference/exposed-settings.md
 
+## Docs Formatting
+
+- After changes under `docs/`, run `npm run format` from `docs/` to apply Prettier formatting.
+
 ---
 
 @AGENTS.local.md
