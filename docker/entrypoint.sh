@@ -11,20 +11,39 @@ is_ext_disabled() {
     [[ "${value,,}" =~ ^(0|false|no|off)$ ]]
 }
 
-setup_node_version() {
-    case "$NODE_VERSION" in
-        22|24)
-            local node_bin="/opt/node/${NODE_VERSION}/bin"
-            ln -sf "${node_bin}/node" /usr/local/bin/node
-            ln -sf "${node_bin}/npm" /usr/local/bin/npm
-            ln -sf "${node_bin}/npx" /usr/local/bin/npx
-            ln -sf "${node_bin}/corepack" /usr/local/bin/corepack
-            ;;
-        *)
-            echo "ERROR: Invalid NODE_VERSION '$NODE_VERSION'. Supported: 22, 24" >&2
-            exit 1
-            ;;
+is_supported_node_version() {
+    case "$1" in
+        22|24) return 0 ;;
+        *) return 1 ;;
     esac
+}
+
+setup_node_version() {
+    if ! is_supported_node_version "$NODE_VERSION"; then
+        echo "ERROR: Invalid NODE_VERSION '$NODE_VERSION'." >&2
+        exit 1
+    fi
+
+    local node_bin="/opt/node/${NODE_VERSION}/bin"
+    ln -sf "${node_bin}/node" /usr/local/bin/node
+    ln -sf "${node_bin}/npm" /usr/local/bin/npm
+    ln -sf "${node_bin}/npx" /usr/local/bin/npx
+    setup_corepack "$node_bin"
+}
+
+# Corepack is bundled through Node.js 24 and dropped in later majors per official Node.js release notes.
+node_supports_corepack() {
+    [[ "$NODE_VERSION" =~ ^[0-9]+$ ]] && [ "$NODE_VERSION" -le 24 ]
+}
+
+setup_corepack() {
+    local node_bin="$1"
+
+    if node_supports_corepack; then
+        local corepack_bin="${node_bin}/corepack"
+        ln -sf "$corepack_bin" /usr/local/bin/corepack
+        "$corepack_bin" enable
+    fi
 }
 
 apply_timeouts() {
