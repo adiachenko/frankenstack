@@ -69,9 +69,11 @@ Opt-in extensions are controlled via `PHP_EXT_<NAME>` environment variables. At 
 - **Boolean parsing:** Accepts `1`/`on`/`true`/`yes` (enable) and `0`/`off`/`false`/`no` (disable), case-insensitive
 
 When adding new **always-on** extensions:
+
 1. Install via `install-php-extensions` in Dockerfile (ini file auto-generated)
 
 When adding new **opt-in** extensions:
+
 1. Install via `install-php-extensions` in Dockerfile
 2. Add `rm -f` for its auto-generated ini file after install
 3. Add `PHP_EXT_<NAME>=` to the `ENV` block
@@ -125,6 +127,12 @@ docker run --rm -e PHP_EXT_ALL=1 frankenstack php -m | grep -c -E '^(gd|intl|xde
 
 # Enable all except specific ones
 docker run --rm -e PHP_EXT_ALL=1 -e PHP_EXT_XDEBUG=0 frankenstack php -r "var_dump(extension_loaded('gd'), extension_loaded('xdebug'));"
+
+# Corepack shims (yarn/pnpm)
+docker run --rm frankenstack yarn --version
+docker run --rm frankenstack pnpm --version
+docker run --rm -e NODE_VERSION=22 frankenstack yarn --version
+docker run --rm -e NODE_VERSION=22 frankenstack pnpm --version
 ```
 
 ## Documentation

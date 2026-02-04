@@ -15,12 +15,12 @@ Batteries included with sensible defaults, configurable via environment variable
 
 ## Included Tools
 
-- **SQLite 3**: Available for local database testing
-- **MySQL 8.4 Client**: For migrations, artisan commands and dumps (supports any MySQL Server ≥ 5.7)
-- **PostgreSQL 18 Client**: For migrations, artisan commands and dumps (supports any PostgreSQL Server ≥ 10)
-- **SSH Client**: For some SSH-based Git operations (GitHub/GitLab can use tokens via `COMPOSER_AUTH`)
+- **SQLite 3**: Available for local database development and testing
+- **MySQL 8.4 Client**: For some artisan commands like `db` and `schema:dump` (for MySQL Server ≥ 5.7)
+- **PostgreSQL 18 Client**: For some artisan commands like `db` and `schema:dump` (for Postgres ≥ 10)
+- **SSH Client**: For some SSH-based Git operations in Composer/NPM (unless you can use tokens)
 - **Composer 2**: Pre-installed for dependency management
-- **Node.js**: Two latest LTS versions (22 and 24) with runtime switching via `NODE_VERSION` env var
+- **Node.js, NPM**: Two latest LTS versions (22 and 24) are included, with runtime switching via the `NODE_VERSION` environment variable. **Yarn** and **pnpm** are available via Corepack when the selected Node version includes it.
 
 ## Included PHP Extensions
 

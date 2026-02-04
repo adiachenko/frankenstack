@@ -87,7 +87,6 @@ RUN set -eux; \
     ln -s /opt/node/24/bin/node /usr/local/bin/node; \
     ln -s /opt/node/24/bin/npm /usr/local/bin/npm; \
     ln -s /opt/node/24/bin/npx /usr/local/bin/npx; \
-    ln -s /opt/node/24/bin/corepack /usr/local/bin/corepack; \
     rm -rf /tmp/node-compile-cache; \
     # Verify installation
     node --version; \
