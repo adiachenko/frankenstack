@@ -13,7 +13,7 @@ Frankenstack gives you a single, Laravel-ready <span style="color: #2496ED; font
 
 "Batteries included" with sensible defaults, configurable via environment variables.
 
-:::note
+:::caution[Docker Experience Required]
 Frankenstack is designed to provide a robust PHP image for people familiar with Docker. It does NOT cover Docker Compose basics or the installation and management of services like MySQL, Redis, and others—these are outside the project's scope. If you're new to Docker, try <a href="https://laravel.com/docs/sail" target="_blank">Laravel Sail</a> instead.
 :::
 
