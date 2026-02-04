@@ -8,8 +8,7 @@
 }
 
 :root,
-:root[data-theme="light"],
-:root[data-theme="dark"] {
+:root[data-theme="light"] {
   /* Fresh green palette */
   --sl-color-accent-low: #e7f6ec;
   --sl-color-accent: #16a34a;
@@ -432,13 +431,19 @@ nav.sidebar {
 /* ==========================================================================
    Blockquotes / Asides
    ========================================================================== */
-blockquote,
-.starlight-aside {
+blockquote {
   border-left: 4px solid var(--sl-color-accent);
   background: linear-gradient(135deg, #effbf3 0%, #e7f6ec 100%);
   border-radius: 0 0.5rem 0.5rem 0;
   padding: 1rem 1.25rem;
   margin: 1.5rem 0;
+}
+
+.starlight-aside {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: var(--sl-color-text);
 }
 
 blockquote p {

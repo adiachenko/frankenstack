@@ -1,0 +1,17 @@
+---
+// Force light mode regardless of system preference or stored value.
+---
+
+<script is:inline>
+  window.StarlightThemeProvider = (() => {
+    document.documentElement.dataset.theme = "light";
+    return {
+      updatePickers() {
+        document.querySelectorAll("starlight-theme-select").forEach((picker) => {
+          const select = picker.querySelector("select");
+          if (select) select.value = "light";
+        });
+      },
+    };
+  })();
+</script>
