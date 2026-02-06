@@ -7,7 +7,8 @@
 AGENTS.local.md
 CLAUDE.local.md
 
-# VSCode
+# Editors
+.idea/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
