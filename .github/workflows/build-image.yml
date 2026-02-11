@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Image tag to publish (defaults to branch name)"
-        required: false
+        description: "Image tag to publish for manual runs (for example: test-feature-foo)"
+        required: true
 
 env:
   LATEST_PHP_BRANCH: "8.5"
