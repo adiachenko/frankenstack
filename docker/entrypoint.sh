@@ -52,6 +52,59 @@ apply_timeouts() {
     export CADDY_WRITE_TIMEOUT="$((REQUEST_TIMEOUT + 10))s"
 }
 
+configure_caddy_acme() {
+    if [ -n "${CADDY_ACME_EMAIL:-}" ]; then
+        export CADDY_ACME_EMAIL_DIRECTIVE="email ${CADDY_ACME_EMAIL}"
+    else
+        export CADDY_ACME_EMAIL_DIRECTIVE=""
+    fi
+}
+
+configure_caddy_tls() {
+    local mode="${CADDY_TLS_MODE:-off}"
+
+    case "$mode" in
+        off)
+            export CADDY_TLS_DIRECTIVE=""
+            export CADDY_AUTO_HTTPS_DIRECTIVE="auto_https off"
+            ;;
+        auto)
+            export CADDY_TLS_DIRECTIVE=""
+            export CADDY_AUTO_HTTPS_DIRECTIVE=""
+            ;;
+        file)
+            if [ -z "${CADDY_TLS_CERT_FILE:-}" ]; then
+                echo "ERROR: CADDY_TLS_CERT_FILE is required when CADDY_TLS_MODE=file." >&2
+                exit 1
+            fi
+
+            if [ -z "${CADDY_TLS_KEY_FILE:-}" ]; then
+                echo "ERROR: CADDY_TLS_KEY_FILE is required when CADDY_TLS_MODE=file." >&2
+                exit 1
+            fi
+
+            if [ ! -r "$CADDY_TLS_CERT_FILE" ]; then
+                echo "ERROR: CADDY_TLS_CERT_FILE '$CADDY_TLS_CERT_FILE' does not exist or is not readable." >&2
+                exit 1
+            fi
+
+            if [ ! -r "$CADDY_TLS_KEY_FILE" ]; then
+                echo "ERROR: CADDY_TLS_KEY_FILE '$CADDY_TLS_KEY_FILE' does not exist or is not readable." >&2
+                exit 1
+            fi
+
+            export CADDY_TLS_DIRECTIVE="tls \"${CADDY_TLS_CERT_FILE}\" \"${CADDY_TLS_KEY_FILE}\""
+            export CADDY_AUTO_HTTPS_DIRECTIVE=""
+            ;;
+        *)
+            echo "ERROR: Invalid CADDY_TLS_MODE '$mode'. Supported values: off, auto, file." >&2
+            exit 1
+            ;;
+    esac
+
+    export CADDY_TLS_MODE="$mode"
+}
+
 resolve_frankenphp_mode() {
     local mode="${FRANKENPHP_MODE:-classic}"
 
@@ -312,6 +365,8 @@ setup_worker_mode() {
 main() {
     setup_node_version
     apply_timeouts
+    configure_caddy_acme
+    configure_caddy_tls
     resolve_frankenphp_mode
     apply_php_env_defaults
     apply_frankenphp_mode_defaults
