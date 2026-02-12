@@ -10,6 +10,7 @@ export default defineConfig({
       customCss: ["./src/styles/custom.css"],
       // Disable dark mode - light only
       components: {
+        ThemeProvider: "./src/components/ThemeProvider.astro",
         ThemeSelect: "./src/components/ThemeSelect.astro",
       },
       expressiveCode: {

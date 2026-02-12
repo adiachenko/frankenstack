@@ -1,49 +1,59 @@
-# Starlight Starter Kit: Basics
+# Frankenstack Documentation
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+The docs site is built with [Astro](https://docs.astro.build/) from markdown files, using a lightly customized [Starlight](https://starlight.astro.build/) theme, and automatically published to [**frankenstack.vercel.app**](https://frankenstack.vercel.app/) on push to the `main` branch.
 
-```
-npm create astro@latest -- --template starlight
-```
+## Scope
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+This project contains user-facing docs published to `frankenstack.vercel.app`.
 
-## 🚀 Project Structure
+- Put public documentation in `docs/src/content/docs/` (`guides/`, `concepts/`, `reference/`).
+- Put maintainer-only operational material in the repository-level `maintainers/` directory.
+- When documenting behavior or defaults, use `docker/` files as the source of truth.
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+## Prerequisites
 
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+- Node.js 22+ (22 or 24 recommended)
+
+## Local Development
+
+From `docs/`:
+
+```bash
+npm install
+npm run dev
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+Default local URL: `http://localhost:4321`.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+Useful commands:
 
-Static assets, like favicons, can be placed in the `public/` directory.
+```bash
+npm run format   # format docs + config with Prettier
+npm run build    # create production build in docs/dist
+npm run preview  # serve the production build locally
+```
 
-## 🧞 Commands
+`npm run preview` serves `docs/dist`, so run `npm run build` first. The `docs/dist` directory is generated output and is not committed.
 
-All commands are run from the root of the project, from a terminal:
+## Content Structure
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Primary content lives in `src/content/docs/`:
 
-## 👀 Want to learn more?
+- `guides/` for introduction and walkthroughs
+- `concepts/` for architecture, behavior, and tradeoffs
+- `reference/` for settings, useful commands, and version policy
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+Navigation is configured in `astro.config.mjs` with autogeneration for those three sections.
+
+## Writing Rules For This Repo
+
+- Keep environment-variable docs aligned with `docker/Dockerfile`, `docker/entrypoint.sh`, and `docker/php/*.ini.tpl`.
+- When adding/changing settings, update `src/content/docs/reference/exposed-settings.md`.
+- Prefer concise, copy-paste-safe examples (`docker run`, `compose.yml`, env vars).
+
+## Change Checklist
+
+Before opening a PR:
+
+1. Run `npm run format` from `docs/`.
+2. Manually spot-check changed pages in `npm run dev`.

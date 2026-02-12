@@ -19,3 +19,5 @@ services:
 ```
 
 By default, frankenstack runs the app server in [classic](https://frankenphp.dev/docs/classic/) mode which is similar to PHP-FPM with Nginx.
+
+This quick start is intentionally local/development-focused (plain HTTP on port `80` in-container). For production domains, TLS, certificate persistence, renewal, and Cloudflare hardening, see [Production Usage](https://frankenstack.vercel.app/guides/production-usage/).
