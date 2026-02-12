@@ -329,6 +329,10 @@ parse_watch_patterns() {
     done <<< "$input"
 }
 
+is_passthrough_command() {
+    [ $# -gt 0 ] && [ "${1#-}" = "$1" ]
+}
+
 setup_worker_mode() {
     [ "${FRANKENPHP_MODE:-classic}" = "worker" ] || return 0
 
@@ -363,10 +367,18 @@ setup_worker_mode() {
 }
 
 main() {
+    local passthrough=0
+    if is_passthrough_command "$@"; then
+        passthrough=1
+    fi
+
     setup_node_version
     apply_timeouts
     configure_caddy_acme
-    configure_caddy_tls
+    # TLS validation is only required when launching the FrankenPHP/Caddy server.
+    if [ "$passthrough" -eq 0 ]; then
+        configure_caddy_tls
+    fi
     resolve_frankenphp_mode
     apply_php_env_defaults
     apply_frankenphp_mode_defaults
@@ -376,7 +388,7 @@ main() {
     setup_worker_mode
 
     # If a command is passed and it's not a frankenphp flag, run it directly (e.g. composer install)
-    if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+    if [ "$passthrough" -eq 1 ]; then
         exec "$@"
     fi
 
