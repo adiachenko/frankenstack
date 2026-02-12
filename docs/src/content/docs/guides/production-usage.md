@@ -40,6 +40,8 @@ Notes:
 
 Use this when Cloudflare terminates visitor TLS and encrypts traffic to your origin with a Cloudflare Origin CA certificate.
 
+> Generate the certificate/key pair (PEM format) in Cloudflare and save both files on the host into `./storage/frankenstack/certs` before starting the container.
+
 ```yaml
 services:
   app:
@@ -107,6 +109,8 @@ References:
 
 - [Cloudflare IP ranges](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/)
 - [Cloudflare Origin CA](https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/)
+- [Cloudflare Full (strict) mode](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)
+- [Cloudflare Origin Rules](https://developers.cloudflare.com/rules/origin-rules/)
 
 Optional hardening: add [Authenticated Origin Pulls](https://developers.cloudflare.com/ssl/origin-configuration/authenticated-origin-pull/) on top of IP allowlisting.
 
@@ -117,4 +121,55 @@ If multiple containers on the same host all map host ports `80:80` and `443:443`
 Use one of these patterns:
 
 - **Single edge proxy (recommended):** run one public entrypoint on host `80/443` (for example, Caddy/Traefik/Nginx) and route each hostname to app containers on internal/private ports. In this model, TLS is terminated at the edge, so backend app containers should typically use `CADDY_TLS_MODE=off` and should not bind host `80/443`.
-- **Cloudflare origin routing:** keep DNS records proxied in Cloudflare and use Origin Rules destination-port overrides to route each hostname to a different origin port on the host. In this model, use Cloudflare SSL mode `Full (strict)` and configure app containers with `CADDY_TLS_MODE=file` (Cloudflare Origin CA cert/key mounted into the container). Ensure your selected visitor-facing port is Cloudflare-proxied and allow Cloudflare source IP ranges to the origin ports you route to.
+- **Cloudflare origin routing:** keep DNS records proxied in Cloudflare and use Origin Rules destination-port overrides to route each hostname to a different origin port on the host. In this model, use Cloudflare SSL mode `Full (strict)` and configure app containers with `CADDY_TLS_MODE=file` (Cloudflare Origin CA cert/key mounted into the container).
+
+### Cloudflare Origin Rules Recipe (Multiple Projects)
+
+First make sure that both apps are mapped to different ports on the host.
+
+Then in Cloudflare:
+
+1. Ensure both DNS records (`app1.example.com`, `app2.example.com`) are **proxied** (orange cloud).
+2. Go to **Rules** -> **Overview** -> **Create rule** -> **Origin Rule**.
+3. Create one rule per hostname:
+   - Rule name: `app1-origin-port`
+   - Expression: `(http.host == "app1.example.com")`
+   - Action: override **Destination port** to `8443` (assuming app1 is mapped to port 8443 on the host)
+   - Rule name: `app2-origin-port`
+   - Expression: `(http.host == "app2.example.com")`
+   - Action: override **Destination port** to `9443` (assuming app2 is mapped to port 9443 on the host)
+4. Deploy rules and keep hostname-specific rules above any broad catch-all rules.
+5. In firewall rules on your origin host, accept inbound traffic on ports 8443/9443 only when the source IP is in Cloudflare’s IP ranges (see https://www.cloudflare.com/ips-v4 and https://www.cloudflare.com/ips-v6); block all other source IPs on those ports. You can also remove rules for allowing inbound traffic on ports 80/443 since they are not needed anymore.
+
+## Bind-Mount Permissions On Native Linux
+
+On native Linux Docker Engine hosts, bind mounts can hit permission issues because processes in the container run as `root` and create root-owned files on the host. Use POSIX ACLs on your project root to keep your deployment user writable access without manual `chown`.
+
+Apply ACL setup before the first `docker compose up -d` (and before any `docker compose run` / `docker compose exec` command that writes into `/opt/project`).
+
+Use your actual host project path and deployment username:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y acl
+
+# Replace both placeholders with your real values before running the next commands
+PROJECT_DIR=/absolute/path/to/your/project
+DEPLOY_USER=your-linux-username
+
+# Access ACL for existing files/directories
+sudo setfacl -R -m u:${DEPLOY_USER}:rwX "${PROJECT_DIR}"
+
+# Default ACL on directories so newly created files/directories inherit access
+sudo find "${PROJECT_DIR}" -type d -exec setfacl -m d:u:${DEPLOY_USER}:rwX {} +
+```
+
+Minimal ACL check:
+
+```bash
+cd "${PROJECT_DIR}"
+docker compose exec app sh -lc 'touch /opt/project/vendor/.acl_probe'
+echo "ok" >> vendor/.acl_probe && rm vendor/.acl_probe && echo "ACL check passed"
+```
+
+If the last command succeeds without `sudo` or `chown`, ACL is configured correctly for this workflow.
