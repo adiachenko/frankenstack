@@ -109,3 +109,12 @@ References:
 - [Cloudflare Origin CA](https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/)
 
 Optional hardening: add [Authenticated Origin Pulls](https://developers.cloudflare.com/ssl/origin-configuration/authenticated-origin-pull/) on top of IP allowlisting.
+
+## Running Multiple Projects On One Host
+
+If multiple containers on the same host all map host ports `80:80` and `443:443`, only one can start successfully.
+
+Use one of these patterns:
+
+- **Single edge proxy (recommended):** run one public entrypoint on host `80/443` (for example, Caddy/Traefik/Nginx) and route each hostname to app containers on internal/private ports. In this model, TLS is terminated at the edge, so backend app containers should typically use `CADDY_TLS_MODE=off` and should not bind host `80/443`.
+- **Cloudflare origin routing:** keep DNS records proxied in Cloudflare and use Origin Rules destination-port overrides to route each hostname to a different origin port on the host. In this model, use Cloudflare SSL mode `Full (strict)` and configure app containers with `CADDY_TLS_MODE=file` (Cloudflare Origin CA cert/key mounted into the container). Ensure your selected visitor-facing port is Cloudflare-proxied and allow Cloudflare source IP ranges to the origin ports you route to.
