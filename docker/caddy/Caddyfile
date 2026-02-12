@@ -10,6 +10,8 @@
         }
     }
 
+    {$CADDY_AUTO_HTTPS_DIRECTIVE}
+    {$CADDY_ACME_EMAIL_DIRECTIVE}
     {$CADDY_GLOBAL_OPTIONS}
 }
 
@@ -20,6 +22,7 @@
     encode zstd br gzip
 
     {$CADDY_SERVER_EXTRA_DIRECTIVES}
+    {$CADDY_TLS_DIRECTIVE}
 
     php_server {
         {$PHP_SERVER_CONFIG}

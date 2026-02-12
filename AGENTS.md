@@ -37,6 +37,8 @@ Minimal Docker image built on `dunglas/frankenphp:1.11.1-php8.5.2-trixie` for ru
 
 **Worker mode:** When `FRANKENPHP_MODE=worker` and `FRANKENPHP_WORKER` exists, the entrypoint configures FrankenPHP to run in worker mode. If the worker script is missing, it falls back to classic mode with a warning. File watching (`FRANKENPHP_WORKER_WATCH`) uses multiline patterns (one per line, with `#` comments); enabled by default in development mode.
 
+**TLS mode (opt-in):** `CADDY_TLS_MODE` controls TLS behavior. `off` (default) keeps HTTP-only behavior and disables Caddy automatic HTTPS, `auto` enables Caddy-managed TLS (for real domains), and `file` uses mounted certificate files from `CADDY_TLS_CERT_FILE`/`CADDY_TLS_KEY_FILE` (both required and readable). For production topology and storage conventions, see `docs/src/content/docs/guides/production-usage.md`.
+
 ## Making Changes
 
 ### PHP settings
@@ -133,6 +135,18 @@ docker run --rm frankenstack yarn --version
 docker run --rm frankenstack pnpm --version
 docker run --rm -e NODE_VERSION=22 frankenstack yarn --version
 docker run --rm -e NODE_VERSION=22 frankenstack pnpm --version
+
+# TLS mode: off (default) keeps HTTP-only
+docker run --rm -e CADDY_TLS_MODE=off frankenstack sh -lc 'echo "$CADDY_TLS_MODE|${CADDY_AUTO_HTTPS_DIRECTIVE:-}"'
+
+# TLS mode: auto with ACME email metadata
+docker run --rm -e CADDY_TLS_MODE=auto -e CADDY_ACME_EMAIL=ops@example.com frankenstack sh -lc 'echo "${CADDY_ACME_EMAIL_DIRECTIVE:-}"'
+
+# TLS mode: file fails fast if cert variables are missing (expect non-zero exit + error message)
+docker run --rm -e CADDY_TLS_MODE=file frankenstack sh -lc 'echo should-not-run'
+
+# TLS mode: file succeeds with mounted cert/key
+docker run --rm -e CADDY_TLS_MODE=file -e CADDY_TLS_CERT_FILE=/certs/origin.crt -e CADDY_TLS_KEY_FILE=/certs/origin.key -v ./storage/frankenstack/certs:/certs:ro frankenstack sh -lc 'echo "$CADDY_TLS_DIRECTIVE"'
 ```
 
 ## Documentation
