@@ -93,8 +93,27 @@ Boolean values accept multiple formats (case-insensitive): `1`, `on`, `true`, `y
 
 ### Caddy
 
-| Variable      | Default |
-| ------------- | ------- |
-| `SERVER_NAME` | `:80`   |
+The base FrankenPHP image can generate local HTTPS certificates automatically, but **frankenstack** defaults to conventional HTTP on `:80` for better compatibility with common Docker tooling and reverse-proxy setups.
 
-> The base FrankenPHP image automatically generates a TLS certificate for localhost and enforces HTTPS. This can cause compatibility issues with some Docker tooling (notably reverse proxies and Orbstack), so our defaults adopt a more conventional setup instead. If you want to restore the original behavior, simply set `SERVER_NAME` to `localhost` and add a port mapping for 443.
+Use these variables to configure hostnames and opt into TLS behavior:
+
+| Variable              | Default |
+| --------------------- | ------- |
+| `SERVER_NAME`         | `:80`   |
+| `CADDY_TLS_MODE`      | `off`   |
+| `CADDY_TLS_CERT_FILE` | -       |
+| `CADDY_TLS_KEY_FILE`  | -       |
+| `CADDY_ACME_EMAIL`    | -       |
+
+Start with `SERVER_NAME`:
+
+- Keep `:80` for local/development HTTP.
+- Set your real hostname (for example `app.example.com`) for production domains.
+
+Then choose `CADDY_TLS_MODE`:
+
+- `off`: HTTP-only mode. This also disables Caddy automatic HTTPS.
+- `auto`: Caddy-managed certificates (typically ACME/Let's Encrypt). Set `SERVER_NAME` to your domain, publish `80` and `443`, and optionally set `CADDY_ACME_EMAIL`.
+- `file`: use certificate and key files from `CADDY_TLS_CERT_FILE` and `CADDY_TLS_KEY_FILE`. Both files are required and must be readable.
+
+For more details on production custom-domain setups (Let's Encrypt, Cloudflare Origin CA, and Cloudflare-only origin hardening), see [Production Usage](https://frankenstack.vercel.app/guides/production-usage/).
