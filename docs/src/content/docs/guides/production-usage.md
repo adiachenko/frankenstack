@@ -1,7 +1,7 @@
 ---
 title: Production Usage
 sidebar:
-  order: 5
+  order: 6
 ---
 
 Frankenstack defaults to local-friendly HTTP (`SERVER_NAME=:80`) and does not enable production TLS unless you opt in.
@@ -67,6 +67,23 @@ Notes:
 - In Cloudflare, set SSL/TLS mode to `Full (strict)`.
 - Cert/key files are external inputs in this mode. Frankenstack validates they exist and are readable at startup.
 
+### Restrict Origin To Cloudflare Only
+
+To keep origin access limited to Cloudflare:
+
+1. Set Cloudflare SSL/TLS mode to `Full (strict)`.
+2. At firewall/security-group level, allow inbound `80` and `443` only from Cloudflare IP ranges.
+3. Deny all other source IPs to `80`/`443`.
+
+References:
+
+- [Cloudflare IP ranges](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/)
+- [Cloudflare Origin CA](https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/)
+- [Cloudflare Full (strict) mode](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)
+- [Cloudflare Origin Rules](https://developers.cloudflare.com/rules/origin-rules/)
+
+Optional hardening: add [Authenticated Origin Pulls](https://developers.cloudflare.com/ssl/origin-configuration/authenticated-origin-pull/) on top of IP allowlisting.
+
 ## Certificate Storage And Persistence
 
 To avoid multiple root-level folders, keep runtime TLS/Caddy assets under one Laravel-style subtree:
@@ -96,23 +113,6 @@ These files are runtime secrets/state and should not be committed. Add this to y
 - `file` mode: renewal is external to the container. Rotate files based on your policy, then restart/redeploy the container.
 
 Cloudflare Origin CA supports long validity periods, but you can still rotate more frequently (for example, yearly or every 90 days).
-
-## Restrict Origin To Cloudflare Only
-
-To keep origin access limited to Cloudflare:
-
-1. Set Cloudflare SSL/TLS mode to `Full (strict)`.
-2. At firewall/security-group level, allow inbound `80` and `443` only from Cloudflare IP ranges.
-3. Deny all other source IPs to `80`/`443`.
-
-References:
-
-- [Cloudflare IP ranges](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/)
-- [Cloudflare Origin CA](https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/)
-- [Cloudflare Full (strict) mode](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)
-- [Cloudflare Origin Rules](https://developers.cloudflare.com/rules/origin-rules/)
-
-Optional hardening: add [Authenticated Origin Pulls](https://developers.cloudflare.com/ssl/origin-configuration/authenticated-origin-pull/) on top of IP allowlisting.
 
 ## Running Multiple Projects On One Host
 
