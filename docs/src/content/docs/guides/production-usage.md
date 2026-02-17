@@ -141,35 +141,6 @@ Then in Cloudflare:
 4. Deploy rules and keep hostname-specific rules above any broad catch-all rules.
 5. In firewall rules on your origin host, accept inbound traffic on ports 8443/9443 only when the source IP is in Cloudflare’s IP ranges (see https://www.cloudflare.com/ips-v4 and https://www.cloudflare.com/ips-v6); block all other source IPs on those ports. You can also remove rules for allowing inbound traffic on ports 80/443 since they are not needed anymore.
 
-## Bind-Mount Permissions On Native Linux
+## Bind-Mount Permissions On Native Linux Hosts
 
-On native Linux Docker Engine hosts, bind mounts can hit permission issues because processes in the container run as `root` and create root-owned files on the host. Use POSIX ACLs on your project root to keep your deployment user writable access without manual `chown`.
-
-Apply ACL setup before the first `docker compose up -d` (and before any `docker compose run` / `docker compose exec` command that writes into `/opt/project`).
-
-Use your actual host project path and deployment username:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y acl
-
-# Replace both placeholders with your real values before running the next commands
-PROJECT_DIR=/absolute/path/to/your/project
-DEPLOY_USER=your-linux-username
-
-# Access ACL for existing files/directories
-sudo setfacl -R -m u:${DEPLOY_USER}:rwX "${PROJECT_DIR}"
-
-# Default ACL on directories so newly created files/directories inherit access
-sudo find "${PROJECT_DIR}" -type d -exec setfacl -m d:u:${DEPLOY_USER}:rwX {} +
-```
-
-Minimal ACL check:
-
-```bash
-cd "${PROJECT_DIR}"
-docker compose exec app sh -lc 'touch /opt/project/vendor/.acl_probe'
-echo "ok" >> vendor/.acl_probe && rm vendor/.acl_probe && echo "ACL check passed"
-```
-
-If the last command succeeds without `sudo` or `chown`, ACL is configured correctly for this workflow.
+See [Linux Permissions](/reference/bind-mount-permissions/) for ACL setup on native Linux Docker Engine hosts.
