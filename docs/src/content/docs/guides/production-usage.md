@@ -1,7 +1,7 @@
 ---
 title: Production Usage
 sidebar:
-  order: 5
+  order: 6
 ---
 
 Frankenstack defaults to local-friendly HTTP (`SERVER_NAME=:80`) and does not enable production TLS unless you opt in.
@@ -67,6 +67,23 @@ Notes:
 - In Cloudflare, set SSL/TLS mode to `Full (strict)`.
 - Cert/key files are external inputs in this mode. Frankenstack validates they exist and are readable at startup.
 
+### Restrict Origin To Cloudflare Only
+
+To keep origin access limited to Cloudflare:
+
+1. Set Cloudflare SSL/TLS mode to `Full (strict)`.
+2. At firewall/security-group level, allow inbound `80` and `443` only from Cloudflare IP ranges.
+3. Deny all other source IPs to `80`/`443`.
+
+References:
+
+- [Cloudflare IP ranges](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/)
+- [Cloudflare Origin CA](https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/)
+- [Cloudflare Full (strict) mode](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)
+- [Cloudflare Origin Rules](https://developers.cloudflare.com/rules/origin-rules/)
+
+Optional hardening: add [Authenticated Origin Pulls](https://developers.cloudflare.com/ssl/origin-configuration/authenticated-origin-pull/) on top of IP allowlisting.
+
 ## Certificate Storage And Persistence
 
 To avoid multiple root-level folders, keep runtime TLS/Caddy assets under one Laravel-style subtree:
@@ -97,23 +114,6 @@ These files are runtime secrets/state and should not be committed. Add this to y
 
 Cloudflare Origin CA supports long validity periods, but you can still rotate more frequently (for example, yearly or every 90 days).
 
-## Restrict Origin To Cloudflare Only
-
-To keep origin access limited to Cloudflare:
-
-1. Set Cloudflare SSL/TLS mode to `Full (strict)`.
-2. At firewall/security-group level, allow inbound `80` and `443` only from Cloudflare IP ranges.
-3. Deny all other source IPs to `80`/`443`.
-
-References:
-
-- [Cloudflare IP ranges](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/)
-- [Cloudflare Origin CA](https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/)
-- [Cloudflare Full (strict) mode](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/)
-- [Cloudflare Origin Rules](https://developers.cloudflare.com/rules/origin-rules/)
-
-Optional hardening: add [Authenticated Origin Pulls](https://developers.cloudflare.com/ssl/origin-configuration/authenticated-origin-pull/) on top of IP allowlisting.
-
 ## Running Multiple Projects On One Host
 
 If multiple containers on the same host all map host ports `80:80` and `443:443`, only one can start successfully.
@@ -141,35 +141,6 @@ Then in Cloudflare:
 4. Deploy rules and keep hostname-specific rules above any broad catch-all rules.
 5. In firewall rules on your origin host, accept inbound traffic on ports 8443/9443 only when the source IP is in Cloudflare’s IP ranges (see https://www.cloudflare.com/ips-v4 and https://www.cloudflare.com/ips-v6); block all other source IPs on those ports. You can also remove rules for allowing inbound traffic on ports 80/443 since they are not needed anymore.
 
-## Bind-Mount Permissions On Native Linux
+## Bind-Mount Permissions On Native Linux Hosts
 
-On native Linux Docker Engine hosts, bind mounts can hit permission issues because processes in the container run as `root` and create root-owned files on the host. Use POSIX ACLs on your project root to keep your deployment user writable access without manual `chown`.
-
-Apply ACL setup before the first `docker compose up -d` (and before any `docker compose run` / `docker compose exec` command that writes into `/opt/project`).
-
-Use your actual host project path and deployment username:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y acl
-
-# Replace both placeholders with your real values before running the next commands
-PROJECT_DIR=/absolute/path/to/your/project
-DEPLOY_USER=your-linux-username
-
-# Access ACL for existing files/directories
-sudo setfacl -R -m u:${DEPLOY_USER}:rwX "${PROJECT_DIR}"
-
-# Default ACL on directories so newly created files/directories inherit access
-sudo find "${PROJECT_DIR}" -type d -exec setfacl -m d:u:${DEPLOY_USER}:rwX {} +
-```
-
-Minimal ACL check:
-
-```bash
-cd "${PROJECT_DIR}"
-docker compose exec app sh -lc 'touch /opt/project/vendor/.acl_probe'
-echo "ok" >> vendor/.acl_probe && rm vendor/.acl_probe && echo "ACL check passed"
-```
-
-If the last command succeeds without `sudo` or `chown`, ACL is configured correctly for this workflow.
+See [Linux Permissions](/reference/bind-mount-permissions/) for ACL setup on native Linux Docker Engine hosts.
