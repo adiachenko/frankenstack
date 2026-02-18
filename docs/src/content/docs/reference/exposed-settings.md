@@ -10,11 +10,24 @@ sidebar:
 | ------------------------- | ------------------------------------------- |
 | `FRANKENPHP_MODE`         | `classic` (also supports `worker`)          |
 | `FRANKENPHP_WORKER`       | `/opt/project/public/frankenphp-worker.php` |
+| `FRANKENPHP_WORKERS`      | unset (defaults to `2 x CPU cores`)         |
 | `FRANKENPHP_MAX_REQUESTS` | unset (no limit)                            |
+| `FRANKENPHP_WORKER_WATCH` | empty (`PHP_ENV=development` sets defaults) |
 | `REQUEST_TIMEOUT`         | `60` (seconds)                              |
 | `NODE_VERSION`            | `24` (also supports `22`)                   |
 
 `REQUEST_TIMEOUT` sets PHP’s `max_execution_time` and Caddy’s `read_body` (+5s) and `write` (+10s) timeouts. The added buffer prevents Caddy from closing connections before PHP can return errors.
+
+**`FRANKENPHP_WORKER_WATCH`** configures file patterns that trigger worker restarts (one pattern per line).
+
+```yaml
+environment:
+  # Default development value for FRANKENPHP_WORKER_WATCH
+  FRANKENPHP_WORKER_WATCH: |
+    /opt/project/**/*.php
+    /opt/project/**/*.{yaml,yml}
+    /opt/project/.env*
+```
 
 ### PHP Settings
 
@@ -29,18 +42,6 @@ Set `PHP_ENV` environment variable to `development` to switch to dev-friendly de
 | `PHP_ERROR_REPORTING`             | `E_ALL & ~E_DEPRECATED` | `E_ALL`         |
 | `PHP_XDEBUG_MODE`                 | `off`                   | `debug,develop` |
 | `PHP_OPCACHE_VALIDATE_TIMESTAMPS` | `0`                     | `1`             |
-| `FRANKENPHP_WORKER_WATCH`         | empty                   | see below       |
-
-**`FRANKENPHP_WORKER_WATCH`** configures file patterns that trigger worker restarts (one pattern per line).
-
-```yaml
-environment:
-  # Default development value for FRANKENPHP_WORKER_WATCH
-  FRANKENPHP_WORKER_WATCH: |
-    /opt/project/**/*.php
-    /opt/project/**/*.{yaml,yml}
-    /opt/project/.env*
-```
 
 **Xdebug** is available automatically in "classic" mode and with trigger in "worker" mode in `development` environment.
 
