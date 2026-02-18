@@ -338,8 +338,14 @@ setup_worker_mode() {
 
     local worker_filename="${FRANKENPHP_WORKER##*/}"
     local watch_config=""
+    local workers_config=""
     local max_requests_config=""
 
+    if [ -n "${FRANKENPHP_WORKERS:-}" ]; then
+        if [[ "$FRANKENPHP_WORKERS" =~ ^[0-9]+$ ]] && [ "$FRANKENPHP_WORKERS" -gt 0 ]; then
+            workers_config="num $FRANKENPHP_WORKERS"
+        fi
+    fi
     if [ -n "${FRANKENPHP_MAX_REQUESTS:-}" ]; then
         if [[ "$FRANKENPHP_MAX_REQUESTS" =~ ^[0-9]+$ ]] && [ "$FRANKENPHP_MAX_REQUESTS" -gt 0 ]; then
             max_requests_config="max_requests $FRANKENPHP_MAX_REQUESTS"
@@ -357,6 +363,7 @@ setup_worker_mode() {
 
     export FRANKENPHP_WORKER_CONFIG="worker {
         file \"$FRANKENPHP_WORKER\"
+        $workers_config
         $max_requests_config
         $watch_config
     }"
