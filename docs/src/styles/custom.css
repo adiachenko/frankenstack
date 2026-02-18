@@ -136,6 +136,51 @@ nav.sidebar {
   border-right-color: var(--sl-color-hairline-light) !important;
 }
 
+/* Mobile Starlight uses --sl-color-black for overlays by default.
+   Force the light palette to keep menu/TOC readable on iOS. */
+@media (max-width: 49.999rem) {
+  .sidebar-pane {
+    background: var(--sl-color-bg-sidebar) !important;
+    color: var(--sl-color-text) !important;
+  }
+
+  starlight-menu-button button[aria-label*="Menu"] {
+    background: var(--sl-color-white) !important;
+    color: var(--sl-color-gray-6) !important;
+    border: 1px solid var(--sl-color-hairline) !important;
+    box-shadow: var(--sl-shadow-sm) !important;
+  }
+
+  starlight-menu-button button[aria-label*="Menu"] svg {
+    color: currentColor !important;
+    fill: currentColor !important;
+  }
+}
+
+@media (max-width: 71.999rem) {
+  #starlight__mobile-toc .toggle {
+    background: var(--sl-color-bg-sidebar) !important;
+    border-color: var(--sl-color-hairline) !important;
+    color: var(--sl-color-text) !important;
+  }
+
+  #starlight__mobile-toc .display-current,
+  #starlight__mobile-toc .caret {
+    color: var(--sl-color-text) !important;
+  }
+
+  #starlight__mobile-toc[open] .toggle,
+  #starlight__mobile-toc .toggle:hover {
+    color: var(--sl-color-text) !important;
+    border-color: var(--sl-color-accent) !important;
+  }
+
+  #starlight__mobile-toc .dropdown {
+    background: var(--sl-color-bg) !important;
+    border-top: 1px solid var(--sl-color-hairline) !important;
+  }
+}
+
 /* Sidebar group labels */
 .sidebar-content .top-level > li > details > summary,
 .sidebar-content .top-level > li > details summary span,
