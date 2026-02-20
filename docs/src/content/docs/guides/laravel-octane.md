@@ -29,15 +29,17 @@ Gotchas:
 When `FRANKENPHP_MODE=worker` is set, Octane is launched and managed natively by the container at startup. The runtime lifecycle is controlled using Docker commands instead of artisan `octane` commands:
 
 - Start: container start is the native equivalent of `octane:start`.
-- Reload: use `docker compose restart app` (or rely on `FRANKENPHP_WORKER_WATCH` in development).
-- Status: use `docker compose ps` (or `docker ps`).
-- Stop: use `docker compose stop app` (or `docker stop`).
+- Status: use `docker compose ps` and `docker compose exec app frankenphp-workers-metrics`.
+- Reload: use `docker compose exec app frankenphp-workers-restart` (or rely on `FRANKENPHP_WORKER_WATCH` in development).
+- Stop: container stop/down is the native equivalent of `octane:stop`
 
-`octane:start` options exposed by the image:
+Common `octane:start` options are exposed as environment variables:
 
-- `--workers` -> `FRANKENPHP_WORKERS`
-- `--max-requests` -> `FRANKENPHP_MAX_REQUESTS`
-- `--watch` -> `FRANKENPHP_WORKER_WATCH`
-- `--host` / `--port` -> Docker networking (`ports`) and `SERVER_NAME`
+| Octane option       | Environment variable                          |
+| ------------------- | --------------------------------------------- |
+| `--workers`         | `FRANKENPHP_WORKERS`                          |
+| `--max-requests`    | `FRANKENPHP_MAX_REQUESTS`                     |
+| `--watch`           | `FRANKENPHP_WORKER_WATCH`                     |
+| `--host` / `--port` | Docker networking (`ports`) and `SERVER_NAME` |
 
 See more details in [Exposed Settings](https://frankenstack.vercel.app/reference/exposed-settings/).
