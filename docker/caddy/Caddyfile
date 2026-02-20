@@ -10,6 +10,8 @@
         }
     }
 
+    metrics
+
     {$CADDY_AUTO_HTTPS_DIRECTIVE}
     {$CADDY_ACME_EMAIL_DIRECTIVE}
     {$CADDY_GLOBAL_OPTIONS}

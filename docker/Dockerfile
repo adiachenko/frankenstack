@@ -140,7 +140,12 @@ COPY php/*.tpl $PHP_INI_DIR/conf.d/
 COPY caddy/Caddyfile /etc/frankenphp/Caddyfile
 
 COPY entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY bin/frankenphp-workers-restart /usr/local/bin/frankenphp-workers-restart
+COPY bin/frankenphp-workers-metrics /usr/local/bin/frankenphp-workers-metrics
+RUN chmod +x \
+    /usr/local/bin/docker-entrypoint.sh \
+    /usr/local/bin/frankenphp-workers-restart \
+    /usr/local/bin/frankenphp-workers-metrics
 
 # Set default environment variables (see entrypoint.sh for defaults dependent on PHP_ENV)
 ENV NODE_VERSION=24 \

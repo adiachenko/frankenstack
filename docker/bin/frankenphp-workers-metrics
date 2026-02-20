@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+curl -fsS "http://localhost:2019/metrics" | awk '
+/^frankenphp_(total_threads|busy_threads|total_workers|ready_workers|busy_workers|worker_queue_depth|worker_crashes|worker_restarts)(\{| )/ {
+    print
+}
+'
