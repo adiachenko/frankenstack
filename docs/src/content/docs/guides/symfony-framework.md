@@ -18,5 +18,7 @@ services:
       - 8000:80
     volumes:
       - ./:/opt/project
-    restart: on-failure
+    restart: unless-stopped
 ```
+
+Worker lifecycle (start, reload, stop, metrics) is managed the same way as Laravel Octane — see [Managing workers](/guides/laravel-octane/#managing-workers).

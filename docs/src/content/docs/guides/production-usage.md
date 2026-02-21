@@ -1,7 +1,7 @@
 ---
 title: Production Usage
 sidebar:
-  order: 6
+  order: 7
 ---
 
 Frankenstack defaults to local-friendly HTTP (`SERVER_NAME=:80`) and does not enable production TLS unless you opt in.

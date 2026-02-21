@@ -1,7 +1,7 @@
 ---
 title: Linux Permissions
 sidebar:
-  order: 4
+  order: 8
 ---
 
 On native Linux Docker Engine hosts, bind mounts can hit permission issues because processes in the container run as `root` and create root-owned files on the host. Use POSIX ACLs on your project root to keep your deployment user writable access without manual `chown`.

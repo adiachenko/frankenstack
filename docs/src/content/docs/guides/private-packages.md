@@ -1,7 +1,7 @@
 ---
 title: Private Packages
 sidebar:
-  order: 5
+  order: 6
 ---
 
 ## Composer Packages

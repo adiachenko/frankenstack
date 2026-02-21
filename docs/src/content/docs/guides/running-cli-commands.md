@@ -1,7 +1,7 @@
 ---
 title: Running CLI Commands
 sidebar:
-  order: 3
+  order: 5
 ---
 
 Normally, you can run CLI commands on a container using the `docker compose exec`:
