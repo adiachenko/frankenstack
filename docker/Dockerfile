@@ -1,5 +1,5 @@
 # check=skip=SecretsUsedInArgOrEnv
-FROM dunglas/frankenphp:1.11.1-php8.4.17-trixie
+FROM dunglas/frankenphp:1.12.2-php8.4.20-trixie
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
