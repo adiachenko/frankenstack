@@ -1,6 +1,6 @@
 # AI Guide for Frankenstack
 
-Minimal Docker image built on `dunglas/frankenphp:1.11.1-php8.5.2-trixie` for running Laravel apps mounted at `/opt/project`.
+Minimal Docker image built on FrankenPHP for running Laravel apps mounted at `/opt/project`.
 
 **Features:**
 
