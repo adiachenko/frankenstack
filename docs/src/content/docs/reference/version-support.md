@@ -10,4 +10,4 @@ When a PHP version reaches end-of-life or falls out of our support window, its t
 
 ## Immutable date tags
 
-Each update to a version tag also publishes a date-stamped tag, e.g. `ghcr.io/adiachenko/frankenstack:8.5-20260610.1234`. Unlike the version tags above, these are never updated after publishing, so you can pin a known-good build in production instead of tracking a moving tag.
+Each update to a version tag also publishes a date-stamped tag, e.g. `ghcr.io/adiachenko/frankenstack:8.5-20260610.32`. Unlike the version tags above, these are never updated after publishing, so you can pin a known-good build in production instead of tracking a moving tag.
