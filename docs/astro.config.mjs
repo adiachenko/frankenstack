@@ -4,9 +4,15 @@ import starlight from "@astrojs/starlight";
 
 // https://astro.build/config
 export default defineConfig({
+  site: "https://frankenstack.vercel.app",
+  redirects: {
+    "/": "/guides/introduction/",
+  },
   integrations: [
     starlight({
       title: "Frankenstack",
+      description:
+        "Laravel-ready FrankenPHP Docker image with classic and worker modes, runtime-configurable PHP settings, and bundled developer tooling.",
       customCss: ["./src/styles/custom.css"],
       // Disable dark mode - light only
       components: {
