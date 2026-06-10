@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/guides/introduction/",
+      "permanent": true
+    }
+  ]
+}

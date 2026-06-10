@@ -1,5 +1,6 @@
 ---
 title: Introduction
+description: Laravel-ready FrankenPHP Docker image with classic and worker modes, configurable PHP settings, and bundled tooling for local and production use.
 sidebar:
   order: 1
 ---

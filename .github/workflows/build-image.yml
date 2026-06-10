@@ -25,6 +25,7 @@ jobs:
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
       is_latest: ${{ steps.vars.outputs.is_latest }}
+      date_tag: ${{ steps.vars.outputs.date_tag }}
     steps:
       - name: Resolve image tags
         id: vars
@@ -38,6 +39,12 @@ jobs:
             echo "is_latest=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_latest=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Immutable date-stamped tag (e.g. 8.5-20260610.1234) for branch
+          # builds only; manual runs already use a throwaway tag.
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "date_tag=${tag}-$(date -u +%Y%m%d).${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
           fi
 
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
@@ -128,6 +135,20 @@ jobs:
             -t "${repo}:${tag}" \
             "${repo}@${{ needs.build_amd64.outputs.digest }}" \
             "${repo}@${{ needs.build_arm64.outputs.digest }}"
+
+          # Reruns reuse the same run number, so never overwrite an
+          # existing date tag — it is documented as immutable.
+          if [ -n "${{ needs.meta.outputs.date_tag }}" ]; then
+            date_ref="${repo}:${{ needs.meta.outputs.date_tag }}"
+            if docker buildx imagetools inspect "${date_ref}" >/dev/null 2>&1; then
+              echo "WARNING: ${date_ref} already exists; skipping publish to keep it immutable"
+            else
+              docker buildx imagetools create \
+                -t "${date_ref}" \
+                "${repo}@${{ needs.build_amd64.outputs.digest }}" \
+                "${repo}@${{ needs.build_arm64.outputs.digest }}"
+            fi
+          fi
 
           if [ "${{ needs.meta.outputs.is_latest }}" = "true" ]; then
             docker buildx imagetools create \

@@ -35,6 +35,8 @@ npm run preview  # serve the production build locally
 
 `npm run preview` serves `docs/dist`, so run `npm run build` first. The `docs/dist` directory is generated output and is not committed.
 
+Production SEO metadata and the root redirect are configured in `astro.config.mjs`; keep the `site` URL aligned with the published docs origin so Astro can generate the sitemap correctly.
+
 ## Content Structure
 
 Primary content lives in `src/content/docs/`:

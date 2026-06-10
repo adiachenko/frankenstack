@@ -1,7 +1,7 @@
 ---
 title: Private Packages
 sidebar:
-  order: 5
+  order: 6
 ---
 
 ## Composer Packages
@@ -73,6 +73,8 @@ services:
     environment:
       SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}
 ```
+
+> On macOS, if you get `Error connecting to agent`, try replacing every `${SSH_AUTH_SOCK}` above with `/run/host-services/ssh-auth.sock` because the former was only tested with OrbStack.
 
 #### Universal Method (Key Secret)
 
