@@ -74,6 +74,8 @@ services:
       SSH_AUTH_SOCK: ${SSH_AUTH_SOCK}
 ```
 
+> On macOS, if you get `Error connecting to agent`, try replacing every `${SSH_AUTH_SOCK}` above with `/run/host-services/ssh-auth.sock` because the former was only tested with OrbStack.
+
 #### Universal Method (Key Secret)
 
 If you're on a team with Windows devs, this is your best option:

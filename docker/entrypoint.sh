@@ -255,7 +255,7 @@ setup_ssh() {
     local ssh_dir="/root/.ssh"
 
     # Skip if no SSH configuration present
-    if [ -z "${SSH_AUTH_SOCK:-}" ] && [ ! -f "/run/secrets/ssh_key" ]; then
+    if [ ! -S "${SSH_AUTH_SOCK:-}" ] && [ ! -f "/run/secrets/ssh_key" ]; then
         return 0
     fi
 

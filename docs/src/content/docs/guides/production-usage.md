@@ -8,6 +8,10 @@ Frankenstack defaults to local-friendly HTTP (`SERVER_NAME=:80`) and does not en
 
 Use this guide when you want to run on a real domain with HTTPS.
 
+## Pin The Image
+
+The compose examples below omit an image tag for brevity. For production deploys, prefer pinning an [immutable date tag](/reference/version-support/#immutable-date-tags) so the image only changes when you choose.
+
 ## Option 1: Let's Encrypt (automatic certificates)
 
 Use this when your domain points to your server and Cloudflare (if enabled) can reach your origin on ports `80` and `443`.
