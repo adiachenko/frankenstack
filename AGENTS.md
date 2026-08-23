@@ -10,7 +10,7 @@ Minimal Docker image built on FrankenPHP for running Laravel apps mounted at `/o
 - Unified `REQUEST_TIMEOUT` controlling both PHP execution time and Caddy timeouts
 - `PHP_ENV` mode (`production`/`development`) with sensible defaults for each
 
-**Bundled tools:** Composer 2, Git, SQLite 3, MySQL 8.4 client, PostgreSQL 18 client, Node.js 22/24 LTS (runtime-switchable)
+**Bundled tools:** Composer 2, Git, SQLite 3, MySQL 9.7 client, PostgreSQL 18 client, Node.js 22/24 LTS (runtime-switchable)
 
 ## Repo Map
 
@@ -50,6 +50,7 @@ Minimal Docker image built on FrankenPHP for running Laravel apps mounted at `/o
 ### Version updates
 
 - **Node.js:** Update `NODE_22_VERSION`/`NODE_24_VERSION` build args in `Dockerfile`. When a new LTS releases, replace the oldest version (build args, installation block, symlinks, entrypoint validation, docs).
+- **pnpm:** Update the `PNPM_VERSION` build arg in `Dockerfile`.
 - **MySQL:** Update `MYSQL_VERSION` build arg. Uses generic glibc2.28 binaries (amd64/arm64).
 - **PostgreSQL:** Update package name in `Dockerfile` (e.g., `postgresql-client-18` → `postgresql-client-19`). Uses PGDG apt repo (amd64/arm64).
 
@@ -130,10 +131,8 @@ docker run --rm -e PHP_EXT_ALL=1 frankenstack php -m | grep -c -E '^(gd|intl|xde
 # Enable all except specific ones
 docker run --rm -e PHP_EXT_ALL=1 -e PHP_EXT_XDEBUG=0 frankenstack php -r "var_dump(extension_loaded('gd'), extension_loaded('xdebug'));"
 
-# Corepack shims (yarn/pnpm)
-docker run --rm frankenstack yarn --version
+# pnpm
 docker run --rm frankenstack pnpm --version
-docker run --rm -e NODE_VERSION=22 frankenstack yarn --version
 docker run --rm -e NODE_VERSION=22 frankenstack pnpm --version
 
 # TLS mode: off (default) keeps HTTP-only
