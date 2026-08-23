@@ -28,22 +28,6 @@ setup_node_version() {
     ln -sf "${node_bin}/node" /usr/local/bin/node
     ln -sf "${node_bin}/npm" /usr/local/bin/npm
     ln -sf "${node_bin}/npx" /usr/local/bin/npx
-    setup_corepack "$node_bin"
-}
-
-# Corepack is bundled through Node.js 24 and dropped in later majors per official Node.js release notes.
-node_supports_corepack() {
-    [[ "$NODE_VERSION" =~ ^[0-9]+$ ]] && [ "$NODE_VERSION" -le 24 ]
-}
-
-setup_corepack() {
-    local node_bin="$1"
-
-    if node_supports_corepack; then
-        local corepack_bin="${node_bin}/corepack"
-        ln -sf "$corepack_bin" /usr/local/bin/corepack
-        "$corepack_bin" enable
-    fi
 }
 
 apply_timeouts() {
