@@ -1,5 +1,5 @@
 # check=skip=SecretsUsedInArgOrEnv
-FROM dunglas/frankenphp:1.12.2-php8.4.20-trixie
+FROM dunglas/frankenphp:1.12.7-php8.4.24-trixie
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -58,7 +58,7 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
              "$PHP_INI_DIR/conf.d/docker-php-ext-xdebug.ini"
 
 # Install Node.js 22 LTS
-ARG NODE_22_VERSION=22.22.0
+ARG NODE_22_VERSION=22.23.2
 RUN set -eux; \
     # Map Docker architecture to Node.js architecture
     case "$(dpkg --print-architecture)" in \
@@ -72,7 +72,7 @@ RUN set -eux; \
     rm -rf /tmp/node-compile-cache
 
 # Install Node.js 24 LTS (default)
-ARG NODE_24_VERSION=24.13.0
+ARG NODE_24_VERSION=24.19.0
 RUN set -eux; \
     # Map Docker architecture to Node.js architecture
     case "$(dpkg --print-architecture)" in \
@@ -92,8 +92,15 @@ RUN set -eux; \
     node --version; \
     npm --version
 
-# Install MySQL 8.4 client (generic glibc2.28 binaries for both amd64 and arm64)
-ARG MYSQL_VERSION=8.4.8
+# Install pnpm
+ARG PNPM_VERSION=11.22.0
+RUN npm install --global --prefix /opt/pnpm "pnpm@${PNPM_VERSION}" --no-audit --no-fund \
+    && ln -s /opt/pnpm/bin/pnpm /usr/local/bin/pnpm \
+    && pnpm --version \
+    && rm -rf /root/.npm
+
+# Install MySQL 9.7 client (generic glibc2.28 binaries for both amd64 and arm64)
+ARG MYSQL_VERSION=9.7.2
 RUN set -eux; \
     # Install runtime dependency for MySQL client
     apt-get update && apt-get install -y --no-install-recommends libncurses6 \
@@ -105,7 +112,7 @@ RUN set -eux; \
         *) echo "Unsupported architecture"; exit 1 ;; \
     esac; \
     # Download tarball to temp location
-    curl -fsSL "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${MYSQL_VERSION}-linux-glibc2.28-${MYSQL_ARCH}.tar.xz" \
+    curl -fsSL "https://dev.mysql.com/get/Downloads/MySQL-9.7/mysql-${MYSQL_VERSION}-linux-glibc2.28-${MYSQL_ARCH}.tar.xz" \
         -o /tmp/mysql.tar.xz; \
     # Extract only client binaries
     mkdir -p /tmp/mysql; \
