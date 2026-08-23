@@ -43,8 +43,7 @@ RUN install-php-extensions \
 
 # Configure PHP ini and remove auto-generated ini files for opt-in extensions
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && rm -f "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-             "$PHP_INI_DIR/conf.d/docker-php-ext-bz2.ini" \
+    && rm -f "$PHP_INI_DIR/conf.d/docker-php-ext-bz2.ini" \
              "$PHP_INI_DIR/conf.d/docker-php-ext-ffi.ini" \
              "$PHP_INI_DIR/conf.d/docker-php-ext-ftp.ini" \
              "$PHP_INI_DIR/conf.d/docker-php-ext-gd.ini" \
