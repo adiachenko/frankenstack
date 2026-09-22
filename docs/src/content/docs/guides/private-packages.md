@@ -158,3 +158,9 @@ For self-hosted GitLab, replace `gitlab.com` with your instance hostname.
 ### SSH Authentication
 
 NPM supports Git URLs for dependencies. If your `package.json` uses SSH URLs, the same SSH configuration from the Composer section applies—use agent forwarding or key secrets. The main downside of installing an npm package directly from a Git repository is that you effectively lose proper versioning. You must pin to a branch or tag instead of using semver, and installs are no longer based on immutable, registry-hosted tarballs—making builds less reproducible.
+
+With pnpm 12, Git dependencies hosted on GitHub, GitLab, and Bitbucket resolve through HTTPS even when specified with SSH URLs. To access private repositories over SSH, also configure Git inside the container before running `pnpm install` (replace `github.com` for other hosts):
+
+```bash
+git config --global url."git@github.com:".insteadOf https://github.com/
+```
