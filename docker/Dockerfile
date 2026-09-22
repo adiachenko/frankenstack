@@ -92,7 +92,7 @@ RUN set -eux; \
     npm --version
 
 # Install pnpm
-ARG PNPM_VERSION=11.22.0
+ARG PNPM_VERSION=12.5.1
 RUN npm install --global --prefix /opt/pnpm "pnpm@${PNPM_VERSION}" --no-audit --no-fund \
     && ln -s /opt/pnpm/bin/pnpm /usr/local/bin/pnpm \
     && pnpm --version \
