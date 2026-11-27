@@ -22,10 +22,10 @@ Frankenstack is designed to provide a robust PHP image for people familiar with 
 
 - **SQLite 3**: Available for local database development and testing
 - **MySQL 9.7 Client**: For some artisan commands like `db` and `schema:dump` (any MySQL Server ≥ 8.0)
-- **PostgreSQL 18 Client**: For some artisan commands like `db` and `schema:dump` (any Postgres ≥ 10)
+- **PostgreSQL 19 Client**: For some artisan commands like `db` and `schema:dump` (any Postgres ≥ 10)
 - **SSH Client**: For some SSH-based Git operations in Composer/NPM (if you can't use tokens)
 - **Composer 2**: Pre-installed for PHP dependency management
-- **Node.js, NPM, pnpm**: Two latest LTS versions (22 and 24) are included, with runtime switching via the `NODE_VERSION` environment variable.
+- **Node.js, NPM, pnpm**: Two latest LTS versions (24 and 26) are included, with runtime switching via the `NODE_VERSION` environment variable.
 
 ## Included PHP Extensions
 
