@@ -14,7 +14,7 @@ sidebar:
 | `FRANKENPHP_MAX_REQUESTS` | unset (no limit)                            |
 | `FRANKENPHP_WORKER_WATCH` | empty (`PHP_ENV=development` sets defaults) |
 | `REQUEST_TIMEOUT`         | `60` (seconds)                              |
-| `NODE_VERSION`            | `24` (also supports `22`)                   |
+| `NODE_VERSION`            | `26` (also supports `24`)                   |
 
 `REQUEST_TIMEOUT` sets PHP’s `max_execution_time` and Caddy’s `read_body` (+5s) and `write` (+10s) timeouts. The added buffer prevents Caddy from closing connections before PHP can return errors.
 
