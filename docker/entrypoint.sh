@@ -13,7 +13,7 @@ is_ext_disabled() {
 
 is_supported_node_version() {
     case "$1" in
-        22|24) return 0 ;;
+        24|26) return 0 ;;
         *) return 1 ;;
     esac
 }
