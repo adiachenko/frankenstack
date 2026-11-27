@@ -1,5 +1,5 @@
 # check=skip=SecretsUsedInArgOrEnv
-FROM dunglas/frankenphp:1.12.7-php8.5.9-trixie
+FROM dunglas/frankenphp:1.14.0-php8.5.13-trixie
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -56,22 +56,8 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
              "$PHP_INI_DIR/conf.d/docker-php-ext-uv.ini" \
              "$PHP_INI_DIR/conf.d/docker-php-ext-xdebug.ini"
 
-# Install Node.js 22 LTS
-ARG NODE_22_VERSION=22.23.2
-RUN set -eux; \
-    # Map Docker architecture to Node.js architecture
-    case "$(dpkg --print-architecture)" in \
-        amd64) ARCH='x64' ;; \
-        arm64) ARCH='arm64' ;; \
-        *) echo "Unsupported architecture"; exit 1 ;; \
-    esac; \
-    mkdir -p /opt/node/22; \
-    curl -fsSL "https://nodejs.org/dist/v${NODE_22_VERSION}/node-v${NODE_22_VERSION}-linux-${ARCH}.tar.xz" \
-        | tar -xJ --strip-components=1 -C /opt/node/22; \
-    rm -rf /tmp/node-compile-cache
-
-# Install Node.js 24 LTS (default)
-ARG NODE_24_VERSION=24.19.0
+# Install Node.js 24 LTS
+ARG NODE_24_VERSION=24.22.3
 RUN set -eux; \
     # Map Docker architecture to Node.js architecture
     case "$(dpkg --print-architecture)" in \
@@ -82,24 +68,38 @@ RUN set -eux; \
     mkdir -p /opt/node/24; \
     curl -fsSL "https://nodejs.org/dist/v${NODE_24_VERSION}/node-v${NODE_24_VERSION}-linux-${ARCH}.tar.xz" \
         | tar -xJ --strip-components=1 -C /opt/node/24; \
-    # Create default symlinks (Node 24)
-    ln -s /opt/node/24/bin/node /usr/local/bin/node; \
-    ln -s /opt/node/24/bin/npm /usr/local/bin/npm; \
-    ln -s /opt/node/24/bin/npx /usr/local/bin/npx; \
+    rm -rf /tmp/node-compile-cache
+
+# Install Node.js 26 LTS (default)
+ARG NODE_26_VERSION=26.13.1
+RUN set -eux; \
+    # Map Docker architecture to Node.js architecture
+    case "$(dpkg --print-architecture)" in \
+        amd64) ARCH='x64' ;; \
+        arm64) ARCH='arm64' ;; \
+        *) echo "Unsupported architecture"; exit 1 ;; \
+    esac; \
+    mkdir -p /opt/node/26; \
+    curl -fsSL "https://nodejs.org/dist/v${NODE_26_VERSION}/node-v${NODE_26_VERSION}-linux-${ARCH}.tar.xz" \
+        | tar -xJ --strip-components=1 -C /opt/node/26; \
+    # Create default symlinks (Node 26)
+    ln -s /opt/node/26/bin/node /usr/local/bin/node; \
+    ln -s /opt/node/26/bin/npm /usr/local/bin/npm; \
+    ln -s /opt/node/26/bin/npx /usr/local/bin/npx; \
     rm -rf /tmp/node-compile-cache; \
     # Verify installation
     node --version; \
     npm --version
 
 # Install pnpm
-ARG PNPM_VERSION=12.5.1
+ARG PNPM_VERSION=12.23.0
 RUN npm install --global --prefix /opt/pnpm "pnpm@${PNPM_VERSION}" --no-audit --no-fund \
     && ln -s /opt/pnpm/bin/pnpm /usr/local/bin/pnpm \
     && pnpm --version \
     && rm -rf /root/.npm
 
 # Install MySQL 9.7 client (generic glibc2.28 binaries for both amd64 and arm64)
-ARG MYSQL_VERSION=9.7.2
+ARG MYSQL_VERSION=9.7.4.1
 RUN set -eux; \
     # Install runtime dependency for MySQL client
     apt-get update && apt-get install -y --no-install-recommends libncurses6 \
@@ -124,7 +124,7 @@ RUN set -eux; \
     # Verify installation
     mysql --version
 
-# Install PostgreSQL 18 client (via PGDG apt repository for multi-arch support)
+# Install PostgreSQL 19 client (via PGDG apt repository for multi-arch support)
 RUN set -eux; \
     # Install temporary dependencies for adding repository
     apt-get update && apt-get install -y --no-install-recommends gnupg; \
@@ -134,7 +134,7 @@ RUN set -eux; \
     echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] https://apt.postgresql.org/pub/repos/apt trixie-pgdg main" \
         > /etc/apt/sources.list.d/pgdg.list; \
     # Install PostgreSQL client
-    apt-get update && apt-get install -y --no-install-recommends postgresql-client-18; \
+    apt-get update && apt-get install -y --no-install-recommends postgresql-client-19; \
     # Cleanup: remove repository artifacts and temporary dependencies
     rm -f /usr/share/keyrings/pgdg.gpg /etc/apt/sources.list.d/pgdg.list; \
     apt-get purge -y --auto-remove gnupg; \
@@ -154,7 +154,7 @@ RUN chmod +x \
     /usr/local/bin/frankenphp-workers-metrics
 
 # Set default environment variables (see entrypoint.sh for defaults dependent on PHP_ENV)
-ENV NODE_VERSION=24 \
+ENV NODE_VERSION=26 \
     PHP_ENV=production \
     FRANKENPHP_MODE=classic \
     FRANKENPHP_WORKER=/opt/project/public/frankenphp-worker.php \
